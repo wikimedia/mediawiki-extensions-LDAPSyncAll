@@ -1,0 +1,43 @@
+{
+	"name": "LDAPSyncAll",
+	"version": "",
+	"license-name": "GPL-3.0-only",
+	"author": [
+		"[http://www.hallowelt.com Hallo Welt! GmbH]"
+	],
+	"url": "http://www.hallowelt.com",
+	"descriptionmsg": "ldapsyncall-desc",
+	"requires": {
+		"MediaWiki": ">= 1.31.0"
+	},
+	"MessagesDirs": {
+		"LDAPSyncAll": "i18n"
+	},
+	"AutoloadNamespaces": {
+		"LDAPSyncAll\\": "src/",
+		"LDAPSyncAll\\Tests\\": "tests/phpunit"
+	},
+	"ResourceModules": {
+		"ext.lDAPSyncAll": {
+			"scripts": [
+				"ext.lDAPSyncAll.js"
+			],
+			"styles": [
+				"ext.lDAPSyncAll.less"
+			]
+		},
+		"ext.lDAPSyncAll.styles": {
+			"styles": [
+				"ext.lDAPSyncAll.static.less"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "resources",
+		"remoteExtPath": "LDAPSyncAll/resources"
+	},
+	"Hooks": {
+		"BeforePageDisplay": "LDAPSyncAll\\Hook\\BeforePageDisplay\\AddModules::callback"
+	},
+	"manifest_version": 2
+}

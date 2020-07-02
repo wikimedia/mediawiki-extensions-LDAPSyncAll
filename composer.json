@@ -1,0 +1,10 @@
+{
+	"name": "hallowelt/ldapsyncall",
+	"type": "mediawiki-extension",
+	"extra": {
+		"installer-name": "LDAPSyncAll"
+	},
+	"require": {
+		"composer/installers": "~1.0"
+	}
+}
