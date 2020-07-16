@@ -1,6 +1,7 @@
 <?php
 namespace LDAPSyncAll;
 
+use Config;
 use MediaWiki\Extension\LDAPGroups\GroupSyncProcess;
 use MediaWiki\Extension\LDAPProvider\Client;
 use MediaWiki\Extension\LDAPProvider\ClientFactory;
@@ -38,15 +39,18 @@ class UserSyncMechanism
     protected $status = null;
 
     /**
-     * @var string null
+     * @var array null
      */
     protected $LDAPGroupsSyncMechanismRegistry = null;
 
     /**
-     * @var string null
+     * @var array null
      */
     protected $LDAPUserInfoModifierRegistry = null;
 
+    /**
+     * @var Config
+     */
     protected $domainConfig;
 
     /**
@@ -54,15 +58,15 @@ class UserSyncMechanism
      * @param Client $ldapClient
      * @param LoggerInterface $logger
      * @param LoadBalancer $loadBalancer
-     * @param $domainConfig
-     * @param string $LDAPGroupsSyncMechanismRegistry
-     * @param string $LDAPUserInfoModifierRegistry
+     * @param Config $domainConfig
+     * @param array $LDAPGroupsSyncMechanismRegistry
+     * @param array $LDAPUserInfoModifierRegistry
      */
     public function __construct(
         Client $ldapClient,
         LoggerInterface $logger,
         LoadBalancer $loadBalancer,
-        $domainConfig,
+        Config $domainConfig,
         $LDAPGroupsSyncMechanismRegistry,
         $LDAPUserInfoModifierRegistry
     ) {
@@ -140,8 +144,8 @@ class UserSyncMechanism
             'retype' => '',
         ] );
 
-        $this->syncUserInfo();
-        $this->syncUserGroups();
+        $this->syncUserInfo( $user );
+        $this->syncUserGroups( $user );
     }
 
     /**
