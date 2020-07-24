@@ -34,7 +34,7 @@
 	"config_prefix": "LDAPSyncAll",
 	"config": {
 		"ExcludedUsernames": {
-			"value": [ "WikiSysop", "Intracomof"]
+			"value": [ "WikiSysop" ]
 		},
 		"ExcludedGroups": {
 			"value": [ "bot" ]

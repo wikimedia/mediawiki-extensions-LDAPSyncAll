@@ -23,3 +23,16 @@ to your `LocalSettings.php` or the appropriate `settings.d/` file.
 
 Extension provides maintenance script that you can simply run from your console `php maintenance/SyncLDAPUsers.php`
 Also, there is RunJobsTriggerHandler that runs once a day.
+
+## Configuration
+
+You need to add the following line in your LocalSettings.php, don't forget to change "Admin" to username who has admin permissions.
+This user is the guy who disables accounts that are not in LDAP
+
+`$GLOBALS['LDAPSyncAllBlockExecutorUsername'] = 'Admin';`
+
+You can specify usernames and usergroups that you want to exclude from disabling, for example:
+
+`$GLOBALS['LDAPSyncAllExcludedUsernames'] = [ 'Bob', 'Emily' ];`
+
+`$GLOBALS['LDAPSyncAllExcludedGroups'] = [ 'bot', 'editor' ];`
