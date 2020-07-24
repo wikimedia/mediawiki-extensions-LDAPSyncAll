@@ -200,7 +200,7 @@ class UsersSyncMechanism
 		$ldapUsers = [];
 		foreach($ldapUsersDirty as $user) {
 			if ( $user['samaccountname'][0] ) {
-				$ldapUsers[ucfirst( $user['samaccountname'][0] )] = [
+				$ldapUsers[User::getCanonicalName( $user['samaccountname'][0] )] = [
 					'user_name' => $user['samaccountname'][0],
 					'user_real_name' => $user['cn'][0],
 					'user_email' => $user['userprincipalname'][0]
