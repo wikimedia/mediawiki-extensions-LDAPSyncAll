@@ -217,11 +217,18 @@ class UsersSyncMechanism
 	protected function getUsersFromDB() {
 		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$result = $dbr->select(
-			[ 'user' ],
-			[ 'user_id', 'user_name' ]
+			[ 'user', 'ipblocks' ],
+			[ 'user_id', 'user_name', 'ipb_expiry' ],
+			[ 'ipb_expiry is null' ],
+			__FUNCTION__,
+			[],
+			[
+				'ipblocks' => [ 'LEFT JOIN', 'user_id = ipb_user' ]
+			]
 		);
 
 		$users = [];
+
 		foreach ( $result as $row ) {
 			if ( in_array( $row->user_name, $this->excludedUsernames ) ) {
 				continue;
@@ -244,16 +251,20 @@ class UsersSyncMechanism
 	protected function addUser( $username, $email = '', $realName = '' ) {
 		try {
 			$user = User::newFromName( $username );
-			$user->addToDatabase();
+			if ( $user->isBlocked() ) {
+				// TODO: enable?
+			} else {
+				$user->addToDatabase();
 
-			$user->setRealName( $realName );
-			$user->setEmail( $email );
-			$user->saveSettings();
+				$user->setRealName( $realName );
+				$user->setEmail( $email );
+				$user->saveSettings();
 
-			$this->syncUserInfo( $user );
-			$this->syncUserGroups( $user );
+				$this->syncUserInfo( $user );
+				$this->syncUserGroups( $user );
 
-			$this->addedUsersCount++;
+				$this->addedUsersCount++;
+			}
 		} catch ( \Exception $exception ) {
 			$this->addedUsersFailsCount++;
 			$this->logger->alert(
@@ -264,7 +275,6 @@ class UsersSyncMechanism
 				]
 			);
 		}
-
 	}
 
 	/**
