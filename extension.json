@@ -24,5 +24,16 @@
 	"Hooks": {
 		"BeforePageDisplay": "LDAPSyncAll\\Hook\\BeforePageDisplay\\AddModules::callback"
 	},
+	"config_prefix": "LDAPSyncAll",
+	"config": {
+		"exclude": {
+			"usernames": [
+				"WikiSysop"
+			],
+			"groups": [
+				"bot"
+			]
+		}
+	},
 	"manifest_version": 2
 }

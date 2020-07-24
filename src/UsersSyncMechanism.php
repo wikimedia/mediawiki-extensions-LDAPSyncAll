@@ -2,19 +2,20 @@
 namespace LDAPSyncAll;
 
 use Config;
+use MediaWiki\Extension\LDAPGroups\Config as LDAPGroupsConfig;
 use MediaWiki\Extension\LDAPGroups\GroupSyncProcess;
 use MediaWiki\Extension\LDAPProvider\Client;
 use MediaWiki\Extension\LDAPProvider\ClientFactory;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
 use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
+use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
 use MediaWiki\MediaWikiServices;
 use LoadBalancer;
 use Psr\Log\LoggerInterface;
 use Status;
 use User;
-use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
-use MediaWiki\Extension\LDAPGroups\Config as LDAPGroupsConfig;
+use UserGroupMembership;
 
 class UsersSyncMechanism
 {
@@ -93,8 +94,13 @@ class UsersSyncMechanism
 		$localUsers = $this->getUsersFromDB();
 		$ldapUsers = $this->getUsersFromLDAP();
 
+		foreach ( $localUsers as $username => $user ) {
+            if ( !array_key_exists( $username, $ldapUsers ) ) {
+                $this->disableUser( $user );
+            }
+        }
 		foreach( $ldapUsers as $ldapUsername => $ldapUser ) {
-			if ( !in_array( $ldapUsername, $localUsers ) ) {
+			if ( !array_key_exists( $ldapUsername, $localUsers ) ) {
 				$this->addUser( $ldapUser['username'], $ldapUser['email'] );
 			}
 		}
@@ -125,16 +131,16 @@ class UsersSyncMechanism
 
 		$ldapUsers = [];
 		foreach($ldapUsersDirty as $user) {
-			$ldapUsers[$user['samaccountname'][0]] = [
-				'user_name' => $user['samaccountname'][0],
-				'user_real_name' => $user['cn'][0],
-				'user_email' => $user['userprincipalname'][0]
-			];
+		    if ( $user['samaccountname'][0] ) {
+                $ldapUsers[ucfirst( $user['samaccountname'][0] )] = [
+                    'user_name' => $user['samaccountname'][0],
+                    'user_real_name' => $user['cn'][0],
+                    'user_email' => $user['userprincipalname'][0]
+                ];
+            }
 		}
-		echo "<pre>";
-		print_r($ldapUsersDirty);die;
 
-		return $users;
+		return $ldapUsers;
 	}
 
 	/**
@@ -143,7 +149,7 @@ class UsersSyncMechanism
 	protected function getUsersFromDB() {
 		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$result = $dbr->select(
-			'user',
+			['user', 'user_groups'],
 			[ 'user_id', 'user_name' ]
 		);
 
@@ -216,7 +222,10 @@ class UsersSyncMechanism
 		$process->run();
 	}
 
-	protected function disableUser( $userId ) {
+	protected function disableUser( User $user ) {
+	    if (UserGroupMembership::getMembership( $user->getId(), 'bot' )) {
+	        return;
+        }
 
 	}
 }
