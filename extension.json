@@ -8,7 +8,17 @@
 	"url": "http://www.hallowelt.com",
 	"descriptionmsg": "ldapsyncall-desc",
 	"requires": {
-		"MediaWiki": ">= 1.31.0"
+		"MediaWiki": ">= 1.31.0",
+		"extensions": {
+			"BlueSpiceFoundation": ">= 3.0.0"
+		}
+	},
+	"attributes": {
+		"BlueSpiceFoundation": {
+			"RunJobsTriggerHandlerRegistry": {
+				"ldap-users-sync-all": "\\LDAPSyncAll\\RunJobsTriggerHandler\\SyncLDAPUsers::factory"
+			}
+		}
 	},
 	"MessagesDirs": {
 		"LDAPSyncAll": "i18n"
@@ -21,18 +31,16 @@
 		"localBasePath": "resources",
 		"remoteExtPath": "LDAPSyncAll/resources"
 	},
-	"Hooks": {
-		"BeforePageDisplay": "LDAPSyncAll\\Hook\\BeforePageDisplay\\AddModules::callback"
-	},
 	"config_prefix": "LDAPSyncAll",
 	"config": {
-		"exclude": {
-			"usernames": [
-				"WikiSysop"
-			],
-			"groups": [
-				"bot"
-			]
+		"ExcludedUsernames": {
+			"value": [ "WikiSysop", "Intracomof"]
+		},
+		"ExcludedGroups": {
+			"value": [ "bot" ]
+		},
+		"BlockExecutorUsername": {
+			"value": "WikiSysop"
 		}
 	},
 	"manifest_version": 2

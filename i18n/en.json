@@ -1,3 +1,4 @@
 {
-	"ldapsyncall-desc": "English description of LDAPSyncAll"
+	"ldapsyncall-desc": "English description of LDAPSyncAll",
+	"user-is-not-in-ad-block-reason": "User is not in active directory"
 }

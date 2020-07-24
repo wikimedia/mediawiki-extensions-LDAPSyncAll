@@ -2,6 +2,7 @@
 namespace LDAPSyncAll;
 
 use Config;
+use IContextSource;
 use MediaWiki\Extension\LDAPGroups\Config as LDAPGroupsConfig;
 use MediaWiki\Extension\LDAPGroups\GroupSyncProcess;
 use MediaWiki\Extension\LDAPProvider\Client;
@@ -13,6 +14,7 @@ use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
 use MediaWiki\MediaWikiServices;
 use LoadBalancer;
 use Psr\Log\LoggerInterface;
+use SpecialBlock;
 use Status;
 use User;
 use UserGroupMembership;
@@ -52,33 +54,77 @@ class UsersSyncMechanism
 	protected $LDAPUserInfoModifierRegistry = null;
 
 	/**
+	 * @var array
+	 */
+	protected $excludedUsernames = [];
+
+	/**
+	 * @var array
+	 */
+	protected $excludedGroups = [];
+
+	/**
 	 * @var string
 	 */
 	protected $domain;
 
 	/**
+	 * @var IContextSource;
+	 */
+	protected $context;
+
+	/**
+	 * @var int
+	 */
+	public $disabledUsersCount = 0;
+
+	/**
+	 * @var int
+	 */
+	public $disabledUsersFailsCount = 0;
+
+	/**
+	 * @var int
+	 */
+	public $addedUsersCount = 0;
+
+	/**
+	 * @var int
+	 */
+	public $addedUsersFailsCount = 0;
+
+	/**
 	 * UsersSyncMechanism constructor.
 	 * @param Client $ldapClient
-	 * @param string $domain
+	 * @param $domain
 	 * @param $LDAPGroupsSyncMechanismRegistry
 	 * @param $LDAPUserInfoModifierRegistry
+	 * @param $excludedUsernames
+	 * @param $excludedGroups
 	 * @param LoggerInterface $logger
 	 * @param LoadBalancer $loadBalancer
+	 * @param IContextSource $context
 	 */
 	public function __construct(
 		Client $ldapClient,
 		$domain,
 		$LDAPGroupsSyncMechanismRegistry,
 		$LDAPUserInfoModifierRegistry,
+		$excludedUsernames,
+		$excludedGroups,
 		LoggerInterface $logger,
-		LoadBalancer $loadBalancer
+		LoadBalancer $loadBalancer,
+		IContextSource $context
 	) {
 		$this->ldapClient = $ldapClient;
-		$this->logger = $logger;
-		$this->loadBalancer = $loadBalancer;
 		$this->domain = $domain;
 		$this->LDAPGroupsSyncMechanismRegistry = $LDAPGroupsSyncMechanismRegistry;
 		$this->LDAPUserInfoModifierRegistry = $LDAPUserInfoModifierRegistry;
+		$this->excludedUsernames = $excludedUsernames;
+		$this->excludedGroups = $excludedGroups;
+		$this->logger = $logger;
+		$this->loadBalancer = $loadBalancer;
+		$this->context = $context;
 	}
 
 	/**
@@ -87,6 +133,19 @@ class UsersSyncMechanism
 	public function sync() {
 		$this->status = \Status::newGood();
 		$this->doSync();
+		$this->logger->alert(
+			'LDAPSyncAll completed. 
+			{addedUsersCount} users added; 
+			{disabledUsersCount} users disabled;
+			{addedUsersFailsCount} users failed to add;
+			{disabledUsersFailsCount} users failed to disable;',
+			[
+				'addedUsersCount' => $this->addedUsersCount,
+				'disabledUsersCount' => $this->disabledUsersCount,
+				'addedUsersFailsCount' => $this->addedUsersFailsCount,
+				'disabledUsersFailsCount' => $this->disabledUsersFailsCount
+			]
+		);
 		return $this->status;
 	}
 
@@ -95,13 +154,18 @@ class UsersSyncMechanism
 		$ldapUsers = $this->getUsersFromLDAP();
 
 		foreach ( $localUsers as $username => $user ) {
-            if ( !array_key_exists( $username, $ldapUsers ) ) {
-                $this->disableUser( $user );
-            }
-        }
+			if ( !array_key_exists( $username, $ldapUsers ) ) {
+				$this->disableUser( $user );
+			}
+		}
+
 		foreach( $ldapUsers as $ldapUsername => $ldapUser ) {
 			if ( !array_key_exists( $ldapUsername, $localUsers ) ) {
-				$this->addUser( $ldapUser['username'], $ldapUser['email'] );
+				$this->addUser(
+					$ldapUser['user_name'],
+					$ldapUser['email'],
+					$ldapUser['user_real_name']
+				);
 			}
 		}
 	}
@@ -111,10 +175,14 @@ class UsersSyncMechanism
 	 */
 	protected function getUsersFromLDAP() {
 		$memberOf = '';
-		$authConfig = DomainConfigFactory::getInstance()->factory( $this->domain, 'authorization' );
+		$authConfig = DomainConfigFactory::getInstance()
+			->factory( $this->domain, 'authorization' );
 		if( $authConfig instanceof Config && $authConfig->has( 'rules' ) ) {
 			$rules = $authConfig->get( 'rules' );
-			if ( array_key_exists('groups', $rules ) && array_key_exists('required', $rules['groups'] ) ) {
+			if (
+				array_key_exists('groups', $rules ) &&
+				array_key_exists('required', $rules['groups'] )
+			) {
 				if ( count($rules['groups']['required']) > 0 ) {
 					$memberOf = '(|';
 					foreach ( $rules['groups']['required'] as $group ) {
@@ -131,13 +199,13 @@ class UsersSyncMechanism
 
 		$ldapUsers = [];
 		foreach($ldapUsersDirty as $user) {
-		    if ( $user['samaccountname'][0] ) {
-                $ldapUsers[ucfirst( $user['samaccountname'][0] )] = [
-                    'user_name' => $user['samaccountname'][0],
-                    'user_real_name' => $user['cn'][0],
-                    'user_email' => $user['userprincipalname'][0]
-                ];
-            }
+			if ( $user['samaccountname'][0] ) {
+				$ldapUsers[ucfirst( $user['samaccountname'][0] )] = [
+					'user_name' => $user['samaccountname'][0],
+					'user_real_name' => $user['cn'][0],
+					'user_email' => $user['userprincipalname'][0]
+				];
+			}
 		}
 
 		return $ldapUsers;
@@ -149,15 +217,17 @@ class UsersSyncMechanism
 	protected function getUsersFromDB() {
 		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$result = $dbr->select(
-			['user', 'user_groups'],
+			[ 'user' ],
 			[ 'user_id', 'user_name' ]
 		);
 
 		$users = [];
 		foreach ( $result as $row ) {
+			if ( in_array( $row->user_name, $this->excludedUsernames ) ) {
+				continue;
+			}
 			$user = User::newFromId($row->user_id);
-
-			if (!is_object($user)) {
+			if ( !is_object( $user ) ) {
 				continue;
 			}
 			$users[$row->user_name] = $user;
@@ -169,19 +239,23 @@ class UsersSyncMechanism
 	/**
 	 * @param $username
 	 * @param string $email
-	 * @throws \MWException
+	 * @param string $realName
 	 */
-	protected function addUser( $username, $email = '' ) {
+	protected function addUser( $username, $email = '', $realName = '' ) {
 		try {
 			$user = User::newFromName( $username );
 			$user->addToDatabase();
 
-			$user->saveSettings();
+			$user->setRealName( $realName );
 			$user->setEmail( $email );
+			$user->saveSettings();
 
 			$this->syncUserInfo( $user );
 			$this->syncUserGroups( $user );
+
+			$this->addedUsersCount++;
 		} catch ( \Exception $exception ) {
+			$this->addedUsersFailsCount++;
 			$this->logger->alert(
 				'User `{username}` creation error {message}',
 				[
@@ -203,9 +277,17 @@ class UsersSyncMechanism
 			return;
 		}
 		$client = ClientFactory::getInstance()->getForDomain( $domain );
-		$domainConfig = DomainConfigFactory::getInstance()->factory( $domain, LDAPGroupsConfig::DOMAINCONFIG_SECTION );
-		$callbackRegistry = MediaWikiServices::getInstance()->getMainConfig()->get( 'LDAPGroupsSyncMechanismRegistry' );
-		$process = new GroupSyncProcess( $user, $domainConfig, $client, $callbackRegistry );
+		$domainConfig = DomainConfigFactory::getInstance()
+			->factory( $domain, LDAPGroupsConfig::DOMAINCONFIG_SECTION );
+		$callbackRegistry = MediaWikiServices::getInstance()
+			->getMainConfig()
+			->get( 'LDAPGroupsSyncMechanismRegistry' );
+		$process = new GroupSyncProcess(
+			$user,
+			$domainConfig,
+			$client,
+			$callbackRegistry
+		);
 		$process->run();
 	}
 
@@ -215,17 +297,57 @@ class UsersSyncMechanism
 	protected function syncUserInfo( $user ) {
 		$process = new UserInfoSyncProcess(
 			$user,
-			DomainConfigFactory::getInstance()->factory( $this->domain, LDAPUserInfoConfig::DOMAINCONFIG_SECTION),
+			DomainConfigFactory::getInstance()
+				->factory(
+					$this->domain,
+					LDAPUserInfoConfig::DOMAINCONFIG_SECTION
+				),
 			$this->ldapClient,
 			$this->LDAPUserInfoModifierRegistry
 		);
 		$process->run();
 	}
 
+	/**
+	 * @param User $user
+	 */
 	protected function disableUser( User $user ) {
-	    if (UserGroupMembership::getMembership( $user->getId(), 'bot' )) {
-	        return;
-        }
+		foreach ( $this->excludedGroups as $group ) {
+			if (UserGroupMembership::getMembership( $user->getId(), $group ) ) {
+				return;
+			}
+		}
 
+		$data = [
+			'PreviousTarget' => $user->getName(),
+			'Target' => $user->getName(),
+			'Reason' => [
+				wfMessage( 'user-is-not-in-ad-block-reason' )->plain()
+			],
+			'Expiry' => 'infinity',
+			'HardBlock' => false,
+			'CreateAccount' => false,
+			'AutoBlock' => true,
+			'DisableEmail' => false,
+			'HideUser' => false,
+			'DisableUTEdit' => true,
+			'Reblock' => false,
+			'Watch' => false,
+			'Confirm' => '',
+			'Tags' => [ 'ldap' ],
+		];
+
+
+		if ( SpecialBlock::processForm( $data, $this->context ) ) {
+			$this->disabledUsersCount++;
+			$this->logger->debug(
+				'User {username} has been disabled by UsersSyncMechanism',
+				[
+					'username' => $user->getName()
+				]
+			);
+		} else {
+			$this->disabledUsersFailsCount++;
+		}
 	}
 }
