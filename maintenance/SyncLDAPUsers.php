@@ -39,13 +39,19 @@ class SyncLDAPUsers extends Maintenance {
 				$context
 			);
 			$usersSyncMechanism->sync();
-			$this->output(
-				"LDAPSyncAll completed. 
-				{$usersSyncMechanism->addedUsersCount} users added; 
-				{$usersSyncMechanism->disabledUsersCount} users disabled;
-				{$usersSyncMechanism->addedUsersFailsCount} users failed to add;
-				{$usersSyncMechanism->disabledUsersFailsCount} users failed to disable;"
-			);
+			$this->output('LDAPSyncAll completed' );
+			$this->output(PHP_EOL);
+			$this->output("{$usersSyncMechanism->addedUsersCount} users added" );
+			$this->output(PHP_EOL);
+			$this->output("{$usersSyncMechanism->disabledUsersCount} users disabled" );
+			$this->output(PHP_EOL);
+			$this->output("{$usersSyncMechanism->addedUsersFailsCount} users failed to add" );
+			$this->output(PHP_EOL);
+			$this->output("{$usersSyncMechanism->disabledUsersFailsCount} users failed to disable" );
+			$this->output(PHP_EOL);
 		}
 	}
 }
+
+$maintClass = SyncLDAPUsers::class;
+require_once RUN_MAINTENANCE_IF_MAIN;
