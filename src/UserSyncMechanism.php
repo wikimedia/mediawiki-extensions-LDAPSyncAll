@@ -16,168 +16,179 @@ use User;
 
 class UserSyncMechanism
 {
-    /**
-     *
-     * @var LoggerInterface
-     */
-    protected $logger = null;
+	/**
+	 *
+	 * @var LoggerInterface
+	 */
+	protected $logger = null;
 
-    /**
-     * @var LoadBalancer
-     */
-    protected $loadBalancer = null;
+	/**
+	 * @var LoadBalancer
+	 */
+	protected $loadBalancer = null;
 
-    /**
-     * @var Client
-     */
-    protected $ldapClient;
+	/**
+	 * @var Client
+	 */
+	protected $ldapClient;
 
-    /**
-     *
-     * @var Status
-     */
-    protected $status = null;
+	/**
+	 *
+	 * @var Status
+	 */
+	protected $status = null;
 
-    /**
-     * @var array null
-     */
-    protected $LDAPGroupsSyncMechanismRegistry = null;
+	/**
+	 * @var array null
+	 */
+	protected $LDAPGroupsSyncMechanismRegistry = null;
 
-    /**
-     * @var array null
-     */
-    protected $LDAPUserInfoModifierRegistry = null;
+	/**
+	 * @var array null
+	 */
+	protected $LDAPUserInfoModifierRegistry = null;
 
-    /**
-     * @var Config
-     */
-    protected $domainConfig;
+	/**
+	 * @var Config
+	 */
+	protected $domainConfig;
 
-    /**
-     * UserSyncMechanism constructor.
-     * @param Client $ldapClient
-     * @param LoggerInterface $logger
-     * @param LoadBalancer $loadBalancer
-     * @param Config $domainConfig
-     * @param array $LDAPGroupsSyncMechanismRegistry
-     * @param array $LDAPUserInfoModifierRegistry
-     */
-    public function __construct(
-        Client $ldapClient,
-        LoggerInterface $logger,
-        LoadBalancer $loadBalancer,
-        Config $domainConfig,
-        $LDAPGroupsSyncMechanismRegistry,
-        $LDAPUserInfoModifierRegistry
-    ) {
-        $this->ldapClient = $ldapClient;
-        $this->logger = $logger;
-        $this->loadBalancer = $loadBalancer;
-        $this->domainConfig = $domainConfig;
-        $this->LDAPGroupsSyncMechanismRegistry = $LDAPGroupsSyncMechanismRegistry;
-        $this->LDAPUserInfoModifierRegistry = $LDAPUserInfoModifierRegistry;
-    }
+	/**
+	 * UserSyncMechanism constructor.
+	 * @param Client $ldapClient
+	 * @param LoggerInterface $logger
+	 * @param LoadBalancer $loadBalancer
+	 * @param Config $domainConfig
+	 * @param array $LDAPGroupsSyncMechanismRegistry
+	 * @param array $LDAPUserInfoModifierRegistry
+	 */
+	public function __construct(
+		Client $ldapClient,
+		LoggerInterface $logger,
+		LoadBalancer $loadBalancer,
+		Config $domainConfig,
+		$LDAPGroupsSyncMechanismRegistry,
+		$LDAPUserInfoModifierRegistry
+	) {
+		$this->ldapClient = $ldapClient;
+		$this->logger = $logger;
+		$this->loadBalancer = $loadBalancer;
+		$this->domainConfig = $domainConfig;
+		$this->LDAPGroupsSyncMechanismRegistry = $LDAPGroupsSyncMechanismRegistry;
+		$this->LDAPUserInfoModifierRegistry = $LDAPUserInfoModifierRegistry;
+	}
 
-    /**
-     * @return Status
-     */
-    public function sync() {
-        $this->status = \Status::newGood();
-        $this->doSync();
-        return $this->status;
-    }
+	/**
+	 * @return Status
+	 */
+	public function sync() {
+		$this->status = \Status::newGood();
+		$this->doSync();
+		return $this->status;
+	}
 
-    protected function doSync() {
-        $localUsers = $this->getUsersFromDB();
-        $ldapUsers = $this->getUsersFromLDAP();
+	protected function doSync() {
+		$localUsers = $this->getUsersFromDB();
+		$ldapUsers = $this->getUsersFromLDAP();
 
-        foreach( $ldapUsers as $ldapUsername ) {
-            if ( !in_array( $ldapUsername, $localUsers ) ) {
+		foreach( $ldapUsers as $ldapUser ) {
+			if ( !in_array( $ldapUsername, $localUsers ) ) {
+				$this->addUser( $ldapUser['username'], $ldapUser['email'] );
+			}
+		}
+	}
 
-            }
-        }
-    }
+	/**
+	 * @return array
+	 */
+	protected function getUsersFromLDAP() {
+		$users = $this->ldapClient->search(
+			"(&(objectClass=User)(objectCategory=Person))"
+		);
 
-    /**
-     * @return array
-     */
-    protected function getUsersFromLDAP() {
-        $users = $this->ldapClient->search(
-            "(&(objectClass=User)(objectCategory=Person))"
-        );
+		return $users;
+	}
 
-        return $users;
-    }
+	/**
+	 * @return array
+	 */
+	protected function getUsersFromDB() {
+		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
+		$result = $dbr->select(
+			'user',
+			[ 'user_id', 'user_name', 'domain' ]
+		);
 
-    /**
-     * @return array
-     */
-    protected function getUsersFromDB() {
-        $dbr = $this->loadBalancer->getConnection( DB_REPLICA );
-        $result = $dbr->select(
-            'user',
-            [ 'user_id', 'user_name', 'domain' ]
-        );
+		$users = [];
+		foreach ( $result as $row ) {
+			$user = User::newFromId($row->user_id);
 
-        $users = [];
-        foreach ( $result as $row ) {
-            $user = User::newFromId($row->user_id);
+			if (!is_object($user)) {
+				continue;
+			}
+			$users[$row->user_name] = $user;
+		}
 
-            if (!is_object($user)) {
-                continue;
-            }
-            $users[$row->user_name] = $user;
-        }
+		return $users;
+	}
 
-        return $users;
-    }
+	/**
+	 * @param $username
+	 * @param string $email
+	 * @throws \MWException
+	 */
+	protected function addUser( $username, $email = '' ) {
+		try {
+			$user = User::newFromName( $username );
+			$user->addToDatabase();
 
-    protected function addUser( $username ) {
-        $user = User::newFromName( $username );
+			$user->saveSettings();
+			$user->setEmail( $email );
 
-        $user->addToDatabase();
-        $user->saveSettings();
+			$this->syncUserInfo( $user );
+			$this->syncUserGroups( $user );
+		} catch ( \Exception $exception ) {
+			$this->logger->alert(
+				'User `{username}` creation error {message}',
+				[
+					'username' => $username,
+					'message' => $exception->getMessage()
+				]
+			);
+		}
 
-        $this->status = $user->changeAuthenticationData( [
-            'username' => $user->getName(),
-            'password' => '',
-            'retype' => '',
-        ] );
+	}
 
-        $this->syncUserInfo( $user );
-        $this->syncUserGroups( $user );
-    }
+	/**
+	 * @param $user
+	 */
+	protected function syncUserGroups( $user ) {
+		$domainStore = new UserDomainStore( $this->loadBalancer );
+		$domain = $domainStore->getDomainForUser( $user );
+		if ( $domain === null ) {
+			return;
+		}
+		$client = ClientFactory::getInstance()->getForDomain( $domain );
+		$domainConfig = DomainConfigFactory::getInstance()->factory( $domain, 'groupsync' );
+		$callbackRegistry = MediaWikiServices::getInstance()->getMainConfig()->get( 'LDAPGroupsSyncMechanismRegistry' );
+		$process = new GroupSyncProcess( $user, $domainConfig, $client, $callbackRegistry );
+		$process->run();
+	}
 
-    /**
-     * @param $user
-     */
-    protected function syncUserGroups( $user ) {
-        $domainStore = new UserDomainStore( $this->loadBalancer );
-        $domain = $domainStore->getDomainForUser( $user );
-        if ( $domain === null ) {
-            return;
-        }
-        $client = ClientFactory::getInstance()->getForDomain( $domain );
-        $domainConfig = DomainConfigFactory::getInstance()->factory( $domain, 'groupsync' );
-        $callbackRegistry = $this->getConfig()->get( 'LDAPGroupsSyncMechanismRegistry' );
-        $process = new GroupSyncProcess( $user, $domainConfig, $client, $callbackRegistry );
-        $process->run();
-    }
+	/**
+	 * @param $user
+	 */
+	protected function syncUserInfo( $user ) {
+		$process = new UserInfoSyncProcess(
+			$user,
+			$this->domainConfig,
+			$this->ldapClient,
+			$this->LDAPUserInfoModifierRegistry
+		);
+		$process->run();
+	}
 
-    /**
-     * @param $user
-     */
-    protected function syncUserInfo( $user ) {
-        $process = new UserInfoSyncProcess(
-            $user,
-            $this->domainConfig,
-            $this->ldapClient,
-            $this->LDAPUserInfoModifierRegistry
-        );
-        $process->run();
-    }
+	protected function disableUser( $userId ) {
 
-    protected function disableUser( $userId ) {
-
-    }
+	}
 }
