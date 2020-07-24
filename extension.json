@@ -17,21 +17,6 @@
 		"LDAPSyncAll\\": "src/",
 		"LDAPSyncAll\\Tests\\": "tests/phpunit"
 	},
-	"ResourceModules": {
-		"ext.lDAPSyncAll": {
-			"scripts": [
-				"ext.lDAPSyncAll.js"
-			],
-			"styles": [
-				"ext.lDAPSyncAll.less"
-			]
-		},
-		"ext.lDAPSyncAll.styles": {
-			"styles": [
-				"ext.lDAPSyncAll.static.less"
-			]
-		}
-	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",
 		"remoteExtPath": "LDAPSyncAll/resources"

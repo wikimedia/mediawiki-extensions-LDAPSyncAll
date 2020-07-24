@@ -13,8 +13,10 @@ use LoadBalancer;
 use Psr\Log\LoggerInterface;
 use Status;
 use User;
+use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
+use MediaWiki\Extension\LDAPGroups\Config as LDAPGroupsConfig;
 
-class UserSyncMechanism
+class UsersSyncMechanism
 {
 	/**
 	 *
@@ -49,31 +51,31 @@ class UserSyncMechanism
 	protected $LDAPUserInfoModifierRegistry = null;
 
 	/**
-	 * @var Config
+	 * @var string
 	 */
-	protected $domainConfig;
+	protected $domain;
 
 	/**
-	 * UserSyncMechanism constructor.
+	 * UsersSyncMechanism constructor.
 	 * @param Client $ldapClient
+	 * @param string $domain
+	 * @param $LDAPGroupsSyncMechanismRegistry
+	 * @param $LDAPUserInfoModifierRegistry
 	 * @param LoggerInterface $logger
 	 * @param LoadBalancer $loadBalancer
-	 * @param Config $domainConfig
-	 * @param array $LDAPGroupsSyncMechanismRegistry
-	 * @param array $LDAPUserInfoModifierRegistry
 	 */
 	public function __construct(
 		Client $ldapClient,
-		LoggerInterface $logger,
-		LoadBalancer $loadBalancer,
-		Config $domainConfig,
+		$domain,
 		$LDAPGroupsSyncMechanismRegistry,
-		$LDAPUserInfoModifierRegistry
+		$LDAPUserInfoModifierRegistry,
+		LoggerInterface $logger,
+		LoadBalancer $loadBalancer
 	) {
 		$this->ldapClient = $ldapClient;
 		$this->logger = $logger;
 		$this->loadBalancer = $loadBalancer;
-		$this->domainConfig = $domainConfig;
+		$this->domain = $domain;
 		$this->LDAPGroupsSyncMechanismRegistry = $LDAPGroupsSyncMechanismRegistry;
 		$this->LDAPUserInfoModifierRegistry = $LDAPUserInfoModifierRegistry;
 	}
@@ -91,7 +93,7 @@ class UserSyncMechanism
 		$localUsers = $this->getUsersFromDB();
 		$ldapUsers = $this->getUsersFromLDAP();
 
-		foreach( $ldapUsers as $ldapUser ) {
+		foreach( $ldapUsers as $ldapUsername => $ldapUser ) {
 			if ( !in_array( $ldapUsername, $localUsers ) ) {
 				$this->addUser( $ldapUser['username'], $ldapUser['email'] );
 			}
@@ -102,9 +104,35 @@ class UserSyncMechanism
 	 * @return array
 	 */
 	protected function getUsersFromLDAP() {
-		$users = $this->ldapClient->search(
-			"(&(objectClass=User)(objectCategory=Person))"
+		$memberOf = '';
+		$authConfig = DomainConfigFactory::getInstance()->factory( $this->domain, 'authorization' );
+		if( $authConfig instanceof Config && $authConfig->has( 'rules' ) ) {
+			$rules = $authConfig->get( 'rules' );
+			if ( array_key_exists('groups', $rules ) && array_key_exists('required', $rules['groups'] ) ) {
+				if ( count($rules['groups']['required']) > 0 ) {
+					$memberOf = '(|';
+					foreach ( $rules['groups']['required'] as $group ) {
+						$memberOf .= '(memberOf=' . $group . ')';
+					}
+					$memberOf .= ')';
+				}
+			}
+		}
+
+		$ldapUsersDirty = $this->ldapClient->search(
+			"(&(objectClass=User)(objectCategory=Person){$memberOf})"
 		);
+
+		$ldapUsers = [];
+		foreach($ldapUsersDirty as $user) {
+			$ldapUsers[$user['samaccountname'][0]] = [
+				'user_name' => $user['samaccountname'][0],
+				'user_real_name' => $user['cn'][0],
+				'user_email' => $user['userprincipalname'][0]
+			];
+		}
+		echo "<pre>";
+		print_r($ldapUsersDirty);die;
 
 		return $users;
 	}
@@ -116,7 +144,7 @@ class UserSyncMechanism
 		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$result = $dbr->select(
 			'user',
-			[ 'user_id', 'user_name', 'domain' ]
+			[ 'user_id', 'user_name' ]
 		);
 
 		$users = [];
@@ -169,7 +197,7 @@ class UserSyncMechanism
 			return;
 		}
 		$client = ClientFactory::getInstance()->getForDomain( $domain );
-		$domainConfig = DomainConfigFactory::getInstance()->factory( $domain, 'groupsync' );
+		$domainConfig = DomainConfigFactory::getInstance()->factory( $domain, LDAPGroupsConfig::DOMAINCONFIG_SECTION );
 		$callbackRegistry = MediaWikiServices::getInstance()->getMainConfig()->get( 'LDAPGroupsSyncMechanismRegistry' );
 		$process = new GroupSyncProcess( $user, $domainConfig, $client, $callbackRegistry );
 		$process->run();
@@ -181,7 +209,7 @@ class UserSyncMechanism
 	protected function syncUserInfo( $user ) {
 		$process = new UserInfoSyncProcess(
 			$user,
-			$this->domainConfig,
+			DomainConfigFactory::getInstance()->factory( $this->domain, LDAPUserInfoConfig::DOMAINCONFIG_SECTION),
 			$this->ldapClient,
 			$this->LDAPUserInfoModifierRegistry
 		);

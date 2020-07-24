@@ -4,7 +4,7 @@ use MediaWiki\Extension\LDAPProvider\ClientFactory;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
 use MediaWiki\Extension\LDAPGroups\GroupSyncProcess;
-use LDAPSyncAll\UserSyncMechanism;
+use LDAPSyncAll\UsersSyncMechanism;
 
 $maintPath = ( getenv( 'MW_INSTALL_PATH' ) !== false
         ? getenv( 'MW_INSTALL_PATH' )
@@ -21,6 +21,6 @@ class SyncUsers extends Maintenance {
     public function execute() {
         $domain = DomainConfigFactory::getInstance()->getConfiguredDomains();
         $ldapClient = ClientFactory::getInstance()->getForDomain();
-        $userSyncMechanism = new UserSyncMechanism();
+        $userSyncMechanism = new UsersSyncMechanism();
     }
 }
