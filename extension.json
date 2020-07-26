@@ -10,7 +10,10 @@
 	"requires": {
 		"MediaWiki": ">= 1.31.0",
 		"extensions": {
-			"BlueSpiceFoundation": ">= 3.0.0"
+			"BlueSpiceFoundation": ">= 3.0.0",
+			"LDAPProvider": "~1.0",
+			"LDAPUserInfo": "~1.0",
+			"LDAPGroups": "~1.0"
 		}
 	},
 	"attributes": {

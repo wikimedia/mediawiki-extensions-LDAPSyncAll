@@ -153,6 +153,7 @@ class UsersSyncMechanism
 					'message' => $exception->getMessage()
 				]
 			);
+			return;
 		}
 
 		foreach ( $localUsers as $username => $user ) {
