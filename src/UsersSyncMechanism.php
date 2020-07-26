@@ -2,16 +2,14 @@
 namespace LDAPSyncAll;
 
 use Config;
+use Exception;
 use IContextSource;
 use MediaWiki\Extension\LDAPGroups\Config as LDAPGroupsConfig;
 use MediaWiki\Extension\LDAPGroups\GroupSyncProcess;
-use MediaWiki\Extension\LDAPProvider\Client;
 use MediaWiki\Extension\LDAPProvider\ClientFactory;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
-use MediaWiki\Extension\LDAPProvider\UserDomainStore;
 use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
-use MediaWiki\MediaWikiServices;
 use LoadBalancer;
 use Psr\Log\LoggerInterface;
 use SpecialBlock;
@@ -31,11 +29,6 @@ class UsersSyncMechanism
 	 * @var LoadBalancer
 	 */
 	protected $loadBalancer = null;
-
-	/**
-	 * @var Client
-	 */
-	protected $ldapClient;
 
 	/**
 	 *
@@ -64,9 +57,9 @@ class UsersSyncMechanism
 	protected $excludedGroups = [];
 
 	/**
-	 * @var string
+	 * @var string[]
 	 */
-	protected $domain;
+	protected $domains;
 
 	/**
 	 * @var IContextSource;
@@ -95,8 +88,7 @@ class UsersSyncMechanism
 
 	/**
 	 * UsersSyncMechanism constructor.
-	 * @param Client $ldapClient
-	 * @param $domain
+	 * @param string[] $domains
 	 * @param $LDAPGroupsSyncMechanismRegistry
 	 * @param $LDAPUserInfoModifierRegistry
 	 * @param $excludedUsernames
@@ -106,8 +98,7 @@ class UsersSyncMechanism
 	 * @param IContextSource $context
 	 */
 	public function __construct(
-		Client $ldapClient,
-		$domain,
+		array $domains,
 		$LDAPGroupsSyncMechanismRegistry,
 		$LDAPUserInfoModifierRegistry,
 		$excludedUsernames,
@@ -116,8 +107,7 @@ class UsersSyncMechanism
 		LoadBalancer $loadBalancer,
 		IContextSource $context
 	) {
-		$this->ldapClient = $ldapClient;
-		$this->domain = $domain;
+		$this->domains = $domains;
 		$this->LDAPGroupsSyncMechanismRegistry = $LDAPGroupsSyncMechanismRegistry;
 		$this->LDAPUserInfoModifierRegistry = $LDAPUserInfoModifierRegistry;
 		$this->excludedUsernames = $excludedUsernames;
@@ -151,7 +141,19 @@ class UsersSyncMechanism
 
 	protected function doSync() {
 		$localUsers = $this->getUsersFromDB();
-		$ldapUsers = $this->getUsersFromLDAP();
+		$ldapUsers = [];
+		try {
+			foreach ($this->domains as $domain) {
+				$ldapUsers += $this->getUsersFromLDAP( $domain );
+			}
+		} catch( Exception $exception ) {
+			$this->logger->error(
+				'Fetching users from LDAP has been failed. Message: {message}',
+				[
+					'message' => $exception->getMessage()
+				]
+			);
+		}
 
 		foreach ( $localUsers as $username => $user ) {
 			if ( !array_key_exists( $username, $ldapUsers ) ) {
@@ -163,6 +165,7 @@ class UsersSyncMechanism
 			if ( !array_key_exists( $ldapUsername, $localUsers ) ) {
 				$this->addUser(
 					$ldapUser['user_name'],
+					$ldapUser['domain'],
 					$ldapUser['email'],
 					$ldapUser['user_real_name']
 				);
@@ -171,12 +174,13 @@ class UsersSyncMechanism
 	}
 
 	/**
+	 * @param string $domain
 	 * @return array
 	 */
-	protected function getUsersFromLDAP() {
+	protected function getUsersFromLDAP( $domain ) {
 		$memberOf = '';
 		$authConfig = DomainConfigFactory::getInstance()
-			->factory( $this->domain, 'authorization' );
+			->factory( $domain, 'authorization' );
 		if( $authConfig instanceof Config && $authConfig->has( 'rules' ) ) {
 			$rules = $authConfig->get( 'rules' );
 			if (
@@ -193,9 +197,9 @@ class UsersSyncMechanism
 			}
 		}
 
-		$ldapUsersDirty = $this->ldapClient->search(
-			"(&(objectClass=User)(objectCategory=Person){$memberOf})"
-		);
+		$ldapUsersDirty = ClientFactory::getInstance()
+			->getForDomain( $domain )
+			->search( "(&(objectClass=User)(objectCategory=Person){$memberOf})" );
 
 		$ldapUsers = [];
 		foreach($ldapUsersDirty as $user) {
@@ -203,7 +207,8 @@ class UsersSyncMechanism
 				$ldapUsers[User::getCanonicalName( $user['samaccountname'][0] )] = [
 					'user_name' => $user['samaccountname'][0],
 					'user_real_name' => $user['cn'][0],
-					'user_email' => $user['userprincipalname'][0]
+					'user_email' => $user['userprincipalname'][0],
+					'domain' => $domain
 				];
 			}
 		}
@@ -244,11 +249,12 @@ class UsersSyncMechanism
 	}
 
 	/**
-	 * @param $username
+	 * @param string $username
+	 * @param string $domain
 	 * @param string $email
 	 * @param string $realName
 	 */
-	protected function addUser( $username, $email = '', $realName = '' ) {
+	protected function addUser( $username, $domain, $email = '', $realName = '' ) {
 		try {
 			$user = User::newFromName( $username );
 			if ( $user->isBlocked() ) {
@@ -260,12 +266,9 @@ class UsersSyncMechanism
 				$user->setEmail( $email );
 				$user->saveSettings();
 
-				$this->syncUserInfo( $user );
-				$this->syncUserGroups( $user );
-
 				$this->addedUsersCount++;
 			}
-		} catch ( \Exception $exception ) {
+		} catch ( Exception $exception ) {
 			$this->addedUsersFailsCount++;
 			$this->logger->alert(
 				'User `{username}` creation error {message}',
@@ -275,44 +278,40 @@ class UsersSyncMechanism
 				]
 			);
 		}
+		$this->syncUserInfo( $user, $domain );
+		$this->syncUserGroups( $user, $domain );
 	}
 
 	/**
-	 * @param $user
+	 * @param User  $user
+	 * @param string $domain
 	 */
-	protected function syncUserGroups( $user ) {
-		$domainStore = new UserDomainStore( $this->loadBalancer );
-		$domain = $domainStore->getDomainForUser( $user );
-		if ( $domain === null ) {
-			return;
-		}
+	protected function syncUserGroups( User $user, $domain ) {
 		$client = ClientFactory::getInstance()->getForDomain( $domain );
 		$domainConfig = DomainConfigFactory::getInstance()
 			->factory( $domain, LDAPGroupsConfig::DOMAINCONFIG_SECTION );
-		$callbackRegistry = MediaWikiServices::getInstance()
-			->getMainConfig()
-			->get( 'LDAPGroupsSyncMechanismRegistry' );
 		$process = new GroupSyncProcess(
 			$user,
 			$domainConfig,
 			$client,
-			$callbackRegistry
+			$this->LDAPGroupsSyncMechanismRegistry
 		);
 		$process->run();
 	}
 
 	/**
-	 * @param $user
+	 * @param User $user
+	 * @param string $domain
 	 */
-	protected function syncUserInfo( $user ) {
+	protected function syncUserInfo( User $user, $domain ) {
 		$process = new UserInfoSyncProcess(
 			$user,
 			DomainConfigFactory::getInstance()
 				->factory(
-					$this->domain,
+					$domain,
 					LDAPUserInfoConfig::DOMAINCONFIG_SECTION
 				),
-			$this->ldapClient,
+			ClientFactory::getInstance()->getForDomain( $domain ),
 			$this->LDAPUserInfoModifierRegistry
 		);
 		$process->run();
@@ -346,7 +345,6 @@ class UsersSyncMechanism
 			'Confirm' => '',
 			'Tags' => [ 'ldap' ],
 		];
-
 
 		if ( SpecialBlock::processForm( $data, $this->context ) ) {
 			$this->disabledUsersCount++;
