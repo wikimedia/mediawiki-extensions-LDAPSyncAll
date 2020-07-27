@@ -8,7 +8,20 @@
 	"url": "http://www.hallowelt.com",
 	"descriptionmsg": "ldapsyncall-desc",
 	"requires": {
-		"MediaWiki": ">= 1.31.0"
+		"MediaWiki": ">= 1.31.0",
+		"extensions": {
+			"BlueSpiceFoundation": ">= 3.0.0",
+			"LDAPProvider": "~1.0",
+			"LDAPUserInfo": "~1.0",
+			"LDAPGroups": "~1.0"
+		}
+	},
+	"attributes": {
+		"BlueSpiceFoundation": {
+			"RunJobsTriggerHandlerRegistry": {
+				"ldap-users-sync-all": "\\LDAPSyncAll\\RunJobsTriggerHandler\\SyncLDAPUsers::factory"
+			}
+		}
 	},
 	"MessagesDirs": {
 		"LDAPSyncAll": "i18n"
@@ -17,27 +30,21 @@
 		"LDAPSyncAll\\": "src/",
 		"LDAPSyncAll\\Tests\\": "tests/phpunit"
 	},
-	"ResourceModules": {
-		"ext.lDAPSyncAll": {
-			"scripts": [
-				"ext.lDAPSyncAll.js"
-			],
-			"styles": [
-				"ext.lDAPSyncAll.less"
-			]
-		},
-		"ext.lDAPSyncAll.styles": {
-			"styles": [
-				"ext.lDAPSyncAll.static.less"
-			]
-		}
-	},
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",
 		"remoteExtPath": "LDAPSyncAll/resources"
 	},
-	"Hooks": {
-		"BeforePageDisplay": "LDAPSyncAll\\Hook\\BeforePageDisplay\\AddModules::callback"
+	"config_prefix": "LDAPSyncAll",
+	"config": {
+		"ExcludedUsernames": {
+			"value": [ "WikiSysop" ]
+		},
+		"ExcludedGroups": {
+			"value": [ "bot" ]
+		},
+		"BlockExecutorUsername": {
+			"value": "WikiSysop"
+		}
 	},
 	"manifest_version": 2
 }
