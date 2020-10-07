@@ -1,5 +1,5 @@
 {
-	"name": "hallowelt/ldapsyncall",
+	"name": "mediawiki/ldap-sync-all",
 	"type": "mediawiki-extension",
 	"extra": {
 		"installer-name": "LDAPSyncAll"
