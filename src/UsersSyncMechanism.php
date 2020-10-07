@@ -17,8 +17,8 @@ use Status;
 use User;
 use UserGroupMembership;
 
-class UsersSyncMechanism
-{
+class UsersSyncMechanism {
+
 	/**
 	 *
 	 * @var LoggerInterface
@@ -89,10 +89,10 @@ class UsersSyncMechanism
 	/**
 	 * UsersSyncMechanism constructor.
 	 * @param string[] $domains
-	 * @param $LDAPGroupsSyncMechanismRegistry
-	 * @param $LDAPUserInfoModifierRegistry
-	 * @param $excludedUsernames
-	 * @param $excludedGroups
+	 * @param array $LDAPGroupsSyncMechanismRegistry
+	 * @param array $LDAPUserInfoModifierRegistry
+	 * @param array $excludedUsernames
+	 * @param array $excludedGroups
 	 * @param LoggerInterface $logger
 	 * @param LoadBalancer $loadBalancer
 	 * @param IContextSource $context
@@ -143,10 +143,10 @@ class UsersSyncMechanism
 		$localUsers = $this->getUsersFromDB();
 		$ldapUsers = [];
 		try {
-			foreach ($this->domains as $domain) {
+			foreach ( $this->domains as $domain ) {
 				$ldapUsers += $this->getUsersFromLDAP( $domain );
 			}
-		} catch( Exception $exception ) {
+		} catch ( Exception $exception ) {
 			$this->logger->error(
 				'Fetching users from LDAP has been failed. Message: {message}',
 				[
@@ -162,7 +162,7 @@ class UsersSyncMechanism
 			}
 		}
 
-		foreach( $ldapUsers as $ldapUsername => $ldapUser ) {
+		foreach ( $ldapUsers as $ldapUsername => $ldapUser ) {
 			if ( !array_key_exists( $ldapUsername, $localUsers ) ) {
 				$this->addUser(
 					$ldapUser['user_name'],
@@ -182,13 +182,13 @@ class UsersSyncMechanism
 		$memberOf = '';
 		$authConfig = DomainConfigFactory::getInstance()
 			->factory( $domain, 'authorization' );
-		if( $authConfig instanceof Config && $authConfig->has( 'rules' ) ) {
+		if ( $authConfig instanceof Config && $authConfig->has( 'rules' ) ) {
 			$rules = $authConfig->get( 'rules' );
 			if (
-				array_key_exists('groups', $rules ) &&
-				array_key_exists('required', $rules['groups'] )
+				array_key_exists( 'groups', $rules ) &&
+				array_key_exists( 'required', $rules['groups'] )
 			) {
-				if ( count($rules['groups']['required']) > 0 ) {
+				if ( count( $rules['groups']['required'] ) > 0 ) {
 					$memberOf = '(|';
 					foreach ( $rules['groups']['required'] as $group ) {
 						$memberOf .= '(memberOf=' . $group . ')';
@@ -203,7 +203,7 @@ class UsersSyncMechanism
 			->search( "(&(objectClass=User)(objectCategory=Person){$memberOf})" );
 
 		$ldapUsers = [];
-		foreach($ldapUsersDirty as $user) {
+		foreach ( $ldapUsersDirty as $user ) {
 			if ( $user['samaccountname'][0] ) {
 				$ldapUsers[User::getCanonicalName( $user['samaccountname'][0] )] = [
 					'user_name' => $user['samaccountname'][0],
@@ -239,7 +239,7 @@ class UsersSyncMechanism
 			if ( in_array( $row->user_name, $this->excludedUsernames ) ) {
 				continue;
 			}
-			$user = User::newFromId($row->user_id);
+			$user = User::newFromId( $row->user_id );
 			if ( !is_object( $user ) ) {
 				continue;
 			}
@@ -284,7 +284,7 @@ class UsersSyncMechanism
 	}
 
 	/**
-	 * @param User  $user
+	 * @param User $user
 	 * @param string $domain
 	 */
 	protected function syncUserGroups( User $user, $domain ) {
@@ -323,7 +323,7 @@ class UsersSyncMechanism
 	 */
 	protected function disableUser( User $user ) {
 		foreach ( $this->excludedGroups as $group ) {
-			if (UserGroupMembership::getMembership( $user->getId(), $group ) ) {
+			if ( UserGroupMembership::getMembership( $user->getId(), $group ) ) {
 				return;
 			}
 		}
