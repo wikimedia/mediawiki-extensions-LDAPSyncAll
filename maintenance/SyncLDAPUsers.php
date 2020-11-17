@@ -1,7 +1,7 @@
 <?php
 
-use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use LDAPSyncAll\UsersSyncMechanism;
+use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 

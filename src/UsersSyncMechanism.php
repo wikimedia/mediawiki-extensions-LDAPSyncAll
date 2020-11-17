@@ -4,13 +4,13 @@ namespace LDAPSyncAll;
 use Config;
 use Exception;
 use IContextSource;
+use LoadBalancer;
 use MediaWiki\Extension\LDAPGroups\Config as LDAPGroupsConfig;
 use MediaWiki\Extension\LDAPGroups\GroupSyncProcess;
 use MediaWiki\Extension\LDAPProvider\ClientFactory;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
-use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
-use LoadBalancer;
+use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use Psr\Log\LoggerInterface;
 use SpecialBlock;
 use Status;
@@ -62,7 +62,7 @@ class UsersSyncMechanism {
 	protected $domains;
 
 	/**
-	 * @var IContextSource;
+	 * @var IContextSource
 	 */
 	protected $context;
 
