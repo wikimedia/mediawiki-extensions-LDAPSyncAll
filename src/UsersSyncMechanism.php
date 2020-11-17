@@ -4,7 +4,6 @@ namespace LDAPSyncAll;
 
 use Exception;
 use IContextSource;
-use Wikimedia\Rdbms\LoadBalancer;
 use LDAPSyncAll\UserListProvider\LdapToolsBackend;
 use MediaWiki\Extension\LDAPAuthorization\Config as LDAPAuthorizationConfig;
 use MediaWiki\Extension\LDAPAuthorization\RequirementsChecker;
@@ -15,13 +14,14 @@ use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\ClientFactory;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
-use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
+use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use Psr\Log\LoggerInterface;
 use SpecialBlock;
 use Status;
 use User;
 use UserGroupMembership;
+use Wikimedia\Rdbms\LoadBalancer;
 
 class UsersSyncMechanism {
 
@@ -68,7 +68,7 @@ class UsersSyncMechanism {
 	protected $domains;
 
 	/**
-	 * @var IContextSource;
+	 * @var IContextSource
 	 */
 	protected $context;
 
