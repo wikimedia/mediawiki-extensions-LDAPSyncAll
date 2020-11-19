@@ -30,21 +30,23 @@ class SyncLDAPUsers extends Maintenance {
 			$config->get( 'LDAPUserInfoModifierRegistry' ),
 			$config->get( 'LDAPSyncAllExcludedUsernames' ),
 			$config->get( 'LDAPSyncAllExcludedGroups' ),
-			LoggerFactory::getInstance( 'ldapusersync' ),
+			LoggerFactory::getInstance( 'LDAPSyncAll' ),
 			MediaWikiServices::getInstance()->getDBLoadBalancer(),
 			$context
 		);
 
-		$usersSyncMechanism->sync();
+		$status = $usersSyncMechanism->sync();
+		$result = (object)$status->getValue();
+
 		$this->output( 'LDAPSyncAll completed' );
 		$this->output( PHP_EOL );
-		$this->output( "{$usersSyncMechanism->addedUsersCount} users added" );
+		$this->output( "{$result->addedUsersCount} users added" );
 		$this->output( PHP_EOL );
-		$this->output( "{$usersSyncMechanism->disabledUsersCount} users disabled" );
+		$this->output( "{$result->disabledUsersCount} users disabled" );
 		$this->output( PHP_EOL );
-		$this->output( "{$usersSyncMechanism->addedUsersFailsCount} users failed to add" );
+		$this->output( "{$result->addedUsersFailsCount} users failed to add" );
 		$this->output( PHP_EOL );
-		$this->output( "{$usersSyncMechanism->disabledUsersFailsCount} users failed to disable" );
+		$this->output( "{$result->disabledUsersFailsCount} users failed to disable" );
 		$this->output( PHP_EOL );
 	}
 }

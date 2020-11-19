@@ -27,7 +27,7 @@ class SyncLDAPUsers extends RunJobsTriggerHandler {
 			$config->get( 'LDAPUserInfoModifierRegistry' ),
 			$config->get( 'LDAPSyncAllExcludedUsernames' ),
 			$config->get( 'LDAPSyncAllExcludedGroups' ),
-			LoggerFactory::getInstance( 'ldapusersync' ),
+			LoggerFactory::getInstance( 'LDAPSyncAll' ),
 			MediaWikiServices::getInstance()->getDBLoadBalancer(),
 			$context
 		);
