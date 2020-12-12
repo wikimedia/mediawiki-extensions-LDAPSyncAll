@@ -14,8 +14,8 @@ use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\ClientFactory;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
-use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
+use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use Psr\Log\LoggerInterface;
 use SpecialBlock;
 use Status;
@@ -296,7 +296,7 @@ class UsersSyncMechanism {
 	 *
 	 * @param string $username
 	 * @param string $domain
-	 * @return boolean
+	 * @return bool
 	 */
 	private function shouldAddOrEnable( $username, $domain ) {
 		$domainConfig = $this->domainConfigFactory->factory(

@@ -12,7 +12,7 @@ use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\EncType;
 use User;
 
-class LdapToolsBackend  implements IUserListProvider {
+class LdapToolsBackend implements IUserListProvider {
 
 	/**
 	 *
@@ -93,10 +93,10 @@ class LdapToolsBackend  implements IUserListProvider {
 		$normalizerCallbacks = [];
 		if ( isset( $GLOBALS['LDAPAuthorizationAutoAuthUsernameNormalizer'] ) ) {
 			$normalizerCallbacks[] = $GLOBALS['LDAPAuthorizationAutoAuthUsernameNormalizer'];
-		};
+		}
 		if ( isset( $GLOBALS['LDAPAuthentication2UsernameNormalizer'] ) ) {
 			$normalizerCallbacks[] = $GLOBALS['LDAPAuthentication2UsernameNormalizer'];
-		};
+		}
 
 		foreach ( $normalizerCallbacks as $normalizerCallback ) {
 			if ( is_callable( $normalizerCallback ) ) {

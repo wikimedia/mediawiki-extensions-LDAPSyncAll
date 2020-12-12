@@ -19,17 +19,18 @@ class MediaWikiLog implements LogLdapLoggerInterface {
 	public function __construct() {
 		$this->logger = LoggerFactory::getInstance( 'LDAPSyncAll' );
 	}
+
 	/**
 	 * The start method is called against a LDAP operation prior to the operation being executed.
 	 *
 	 * @param LogOperation $operation
 	 */
 	public function start( LogOperation $operation ) {
-		$message = "(".$operation->getDomain().") -- Start Operation Type: "
-			.$operation->getOperation()->getName().PHP_EOL;
+		$message = "(" . $operation->getDomain() . ") -- Start Operation Type: "
+			. $operation->getOperation()->getName() . PHP_EOL;
 
 		foreach ( $operation->getOperation()->getLogArray() as $key => $value ) {
-			$message .= "\t$key: $value".PHP_EOL;
+			$message .= "\t$key: $value" . PHP_EOL;
 		}
 
 		$this->logger->debug( $message );
@@ -44,14 +45,14 @@ class MediaWikiLog implements LogLdapLoggerInterface {
 		$duration = $operation->getStopTime() - $operation->getStartTime();
 
 		if ( $operation->getOperation() instanceof CacheableOperationInterface ) {
-			echo "\tCache Hit: ".var_export( $operation->getUsedCachedResult(), true ).PHP_EOL;
+			echo "\tCache Hit: " . var_export( $operation->getUsedCachedResult(), true ) . PHP_EOL;
 		}
-		if ( !is_null( $operation->getError() ) ) {
-			echo "\tError: ".$operation->getError().PHP_EOL;
+		if ( $operation->getError() !== null ) {
+			echo "\tError: " . $operation->getError() . PHP_EOL;
 		}
 
-		$message = "(".$operation->getDomain().") -- End Operation Type: "
-			.$operation->getOperation()->getName()." -- ($duration seconds)".PHP_EOL;
+		$message = "(" . $operation->getDomain() . ") -- End Operation Type: "
+			. $operation->getOperation()->getName() . " -- ($duration seconds)" . PHP_EOL;
 
 		$this->logger->debug( $message );
 	}
