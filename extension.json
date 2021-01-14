@@ -3,9 +3,9 @@
 	"version": "1.0.0",
 	"license-name": "GPL-3.0-only",
 	"author": [
-		"[http://www.hallowelt.com Hallo Welt! GmbH]"
+		"[https://www.hallowelt.com Hallo Welt! GmbH]"
 	],
-	"url": "http://www.hallowelt.com",
+	"url": "https://www.hallowelt.com",
 	"descriptionmsg": "ldapsyncall-desc",
 	"requires": {
 		"MediaWiki": ">= 1.31.0",
@@ -26,8 +26,7 @@
 		"LDAPSyncAll": "i18n"
 	},
 	"AutoloadNamespaces": {
-		"LDAPSyncAll\\": "src/",
-		"LDAPSyncAll\\Tests\\": "tests/phpunit"
+		"LDAPSyncAll\\": "src/"
 	},
 	"config_prefix": "LDAPSyncAll",
 	"config": {
