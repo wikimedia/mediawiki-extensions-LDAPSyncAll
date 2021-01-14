@@ -17,6 +17,11 @@ require_once $maintPath;
 
 class SyncLDAPUsers extends Maintenance {
 
+	public function __construct() {
+		parent::__construct();
+		$this->requireExtension( 'LDAPSyncAll' );
+	}
+
 	public function execute() {
 		$config = new GlobalVarConfig( '' );
 		$context = RequestContext::getMain();
