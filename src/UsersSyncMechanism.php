@@ -171,6 +171,12 @@ class UsersSyncMechanism {
 		}
 		catch ( Exception $ex ) {
 			$this->status = Status::newFatal( $ex->getMessage() );
+			$this->logger->error(
+				'Error: `{message}`',
+				[
+					'message' => $ex->getMessage()
+				]
+			);
 		}
 
 		return $this->status;
@@ -234,6 +240,7 @@ class UsersSyncMechanism {
 	}
 
 	private function updateUserDomainStore() {
+		$this->logger->debug( 'Setting domains' );
 		$localUsers = $this->getLocalDBUsers();
 		foreach ( $this->usernameDomainMap as $username => $domain ) {
 			$user = null;
@@ -247,10 +254,11 @@ class UsersSyncMechanism {
 				continue;
 			}
 			if ( $user->getId() !== 0 ) {
-				$this->logger->error(
-					'Set domain for `{username}`',
+				$this->logger->debug(
+					'Set domain `{domain} for `{username}`',
 					[
-						'username' => $user->getName()
+						'username' => $user->getName(),
+						'domain' => $domain
 					]
 				);
 				$this->userDomainStore->setDomainForUser( $user, $domain );
@@ -259,12 +267,13 @@ class UsersSyncMechanism {
 	}
 
 	private function syncAllUsersInfo() {
+		$this->logger->debug( 'Syncing all user info' );
 		$usersToSync = $this->getLocalDBUsers();
 		foreach ( $usersToSync as $user ) {
 			if ( $user->isBlocked() ) {
 				continue;
 			}
-			$this->logger->error(
+			$this->logger->debug(
 				'Sync info for `{username}`',
 				[
 					'username' => $user->getName()
@@ -276,12 +285,13 @@ class UsersSyncMechanism {
 	}
 
 	private function syncAllUsersGroups() {
+		$this->logger->debug( 'Syncing all user groups' );
 		$usersToSync = $this->getLocalDBUsers();
 		foreach ( $usersToSync as $user ) {
 			if ( $user->isBlocked() ) {
 				continue;
 			}
-			$this->logger->error(
+			$this->logger->debug(
 				'Sync groups for `{username}`',
 				[
 					'username' => $user->getName()
@@ -347,7 +357,7 @@ class UsersSyncMechanism {
 	 */
 	private function addUser( $user ) {
 		try {
-			$this->logger->error(
+			$this->logger->debug(
 				'Add `{username}`',
 				[
 					'username' => $user->getName()
