@@ -250,7 +250,7 @@ class UsersSyncMechanism {
 			if ( $user === null ) {
 				continue;
 			}
-			if ( $user->isBlocked() ) {
+			if ( $user->getBlock() ) {
 				continue;
 			}
 			if ( $user->getId() !== 0 ) {
@@ -270,7 +270,7 @@ class UsersSyncMechanism {
 		$this->logger->debug( 'Syncing all user info' );
 		$usersToSync = $this->getLocalDBUsers();
 		foreach ( $usersToSync as $user ) {
-			if ( $user->isBlocked() ) {
+			if ( $user->getBlock() ) {
 				continue;
 			}
 			$this->logger->debug(
@@ -288,7 +288,7 @@ class UsersSyncMechanism {
 		$this->logger->debug( 'Syncing all user groups' );
 		$usersToSync = $this->getLocalDBUsers();
 		foreach ( $usersToSync as $user ) {
-			if ( $user->isBlocked() ) {
+			if ( $user->getBlock() ) {
 				continue;
 			}
 			$this->logger->debug(
@@ -382,7 +382,7 @@ class UsersSyncMechanism {
 	 */
 	private function maybeEnableUser( $user ) {
 		try {
-			if ( $user->isBlocked() ) {
+			if ( $user->getBlock() ) {
 				$result = $user->getBlock()->delete();
 				$this->logger->debug( 'Enabling `{username}`: {result}',
 				[
@@ -455,7 +455,7 @@ class UsersSyncMechanism {
 			}
 		}
 
-		if ( $user->isBlocked() ) {
+		if ( $user->getBlock() ) {
 			return;
 		}
 
