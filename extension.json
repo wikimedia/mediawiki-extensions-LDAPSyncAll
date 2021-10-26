@@ -37,7 +37,10 @@
 			"value": [ "bot" ]
 		},
 		"BlockExecutorUsername": {
-			"value": "WikiSysop"
+			"value": "Maintenance"
+		},
+		"UsersSyncMechanism": {
+			"value": "\\LDAPSyncAll\\UserSyncMechanism\\SyncAllMechanism::factory"
 		}
 	},
 	"manifest_version": 2,

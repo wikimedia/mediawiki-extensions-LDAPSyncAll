@@ -1,10 +1,5 @@
 <?php
 
-use LDAPSyncAll\UsersSyncMechanism;
-use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
-use MediaWiki\Logger\LoggerFactory;
-use MediaWiki\MediaWikiServices;
-
 $maintPath = ( getenv( 'MW_INSTALL_PATH' ) !== false
 		? getenv( 'MW_INSTALL_PATH' )
 		: __DIR__ . '/../../..' ) . '/maintenance/Maintenance.php';
@@ -29,30 +24,34 @@ class SyncLDAPUsers extends Maintenance {
 			User::newFromName( $config->get( 'LDAPSyncAllBlockExecutorUsername' ) )
 		);
 
-		$usersSyncMechanism = new UsersSyncMechanism(
-			DomainConfigFactory::getInstance()->getConfiguredDomains(),
-			$config->get( 'LDAPGroupsSyncMechanismRegistry' ),
-			$config->get( 'LDAPUserInfoModifierRegistry' ),
-			$config->get( 'LDAPSyncAllExcludedUsernames' ),
-			$config->get( 'LDAPSyncAllExcludedGroups' ),
-			LoggerFactory::getInstance( 'LDAPSyncAll' ),
-			MediaWikiServices::getInstance()->getDBLoadBalancer(),
-			$context
-		);
+		$syncMechanismCallback = $config->get( 'LDAPSyncAllUsersSyncMechanism' );
+		$usersSyncMechanism = call_user_func_array( $syncMechanismCallback, [ $config, $context ] );
 
 		$status = $usersSyncMechanism->sync();
 		$result = (object)$status->getValue();
 
 		$this->output( 'LDAPSyncAll completed' );
 		$this->output( PHP_EOL );
-		$this->output( "{$result->addedUsersCount} users added" );
-		$this->output( PHP_EOL );
-		$this->output( "{$result->disabledUsersCount} users disabled" );
-		$this->output( PHP_EOL );
-		$this->output( "{$result->addedUsersFailsCount} users failed to add" );
-		$this->output( PHP_EOL );
-		$this->output( "{$result->disabledUsersFailsCount} users failed to disable" );
-		$this->output( PHP_EOL );
+
+		if ( isset( $result->addedUsersCount ) ) {
+			$this->output( "{$result->addedUsersCount} users added" );
+			$this->output( PHP_EOL );
+		}
+
+		if ( isset( $result->disabledUsersCount ) ) {
+			$this->output( "{$result->disabledUsersCount} users disabled" );
+			$this->output( PHP_EOL );
+		}
+
+		if ( isset( $result->addedUsersFailsCount ) ) {
+			$this->output( "{$result->addedUsersFailsCount} users failed to add" );
+			$this->output( PHP_EOL );
+		}
+
+		if ( isset( $result->disabledUsersFailsCount ) ) {
+			$this->output( "{$result->disabledUsersFailsCount} users failed to disable" );
+			$this->output( PHP_EOL );
+		}
 	}
 }
 
