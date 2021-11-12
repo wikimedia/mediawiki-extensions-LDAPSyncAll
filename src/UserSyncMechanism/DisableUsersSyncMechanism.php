@@ -128,7 +128,6 @@ class DisableUsersSyncMechanism extends UsersSyncMechanism {
 		$usersToDisable = array_diff_key( $localUsers, $ldapUsers );
 
 		foreach ( $usersToDisable as $userToDisable ) {
-			$this->logger->debug( "Disabling user: '{$userToDisable->getName()}'" );
 			$this->disableLocalUser( $userToDisable );
 		}
 	}
