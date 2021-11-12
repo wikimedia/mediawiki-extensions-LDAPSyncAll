@@ -160,7 +160,6 @@ class SyncAllMechanism extends UsersSyncMechanism {
 
 	private function syncLocalUserDB() {
 		$usersToAddOrEnable = [];
-		$usersToDisable = [];
 		foreach ( $this->domains as $domain ) {
 			$userListProvider = $this->utils->makeUserListProvider( $domain );
 			$usernames = $userListProvider->getWikiUsernames();
@@ -169,17 +168,13 @@ class SyncAllMechanism extends UsersSyncMechanism {
 				$this->usernameDomainMap[$username] = $domain;
 				if ( $this->shouldAddOrEnable( $username, $domain ) ) {
 					$usersToAddOrEnable[] = $username;
-				} else {
-					$usersToDisable[] = $username;
 				}
 			}
 		}
 
 		$localUsers = $this->dao->getLocalDBUsers();
 		$localDBUsernames = array_keys( $localUsers );
-		// This will only disable users that are actually in the LDAP, but not "local users"
-		// TODO: fix
-		$usersToDisableLocally = array_intersect( $usersToDisable, $localDBUsernames );
+		$usersToDisableLocally = array_diff( $localDBUsernames, $usersToAddOrEnable );
 
 		foreach ( $usersToDisableLocally as $username ) {
 			$userToDisable = $localUsers[$username];
