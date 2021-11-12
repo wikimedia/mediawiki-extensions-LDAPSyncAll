@@ -125,8 +125,20 @@ abstract class UsersSyncMechanism {
 	 * @return void
 	 */
 	protected function disableLocalUser( User $user ) {
+		if ( $user->isBlocked() ) {
+			return;
+		}
+		if ( in_array( $user->getName(), $this->excludedUsernames ) ) {
+			$this->logger->info( 'User "{username}" excluded by "ExcludedUsernames" configuration', [
+				'username' => $user->getName()
+			] );
+			return;
+		}
 		foreach ( $this->excludedGroups as $group ) {
 			if ( $this->utils->isInGroup( $user, $group ) ) {
+				$this->logger->info( 'User "{username}" excluded by "ExcludedGroups" configuration', [
+					'username' => $user->getName()
+				] );
 				return;
 			}
 		}
@@ -137,7 +149,7 @@ abstract class UsersSyncMechanism {
 		} else {
 			$this->disabledUsersFailsCount++;
 			$this->logger->error(
-				'Error while disabling user {username}: {message}',
+				'Error while disabling user "{username}": {message}',
 				[
 					'username' => $user->getName(),
 					'message' => $result

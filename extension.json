@@ -37,7 +37,7 @@
 			"value": [ "bot" ]
 		},
 		"BlockExecutorUsername": {
-			"value": "Maintenance"
+			"value": "MediaWiki default"
 		},
 		"UsersSyncMechanism": {
 			"value": "\\LDAPSyncAll\\UserSyncMechanism\\SyncAllMechanism::factory"
