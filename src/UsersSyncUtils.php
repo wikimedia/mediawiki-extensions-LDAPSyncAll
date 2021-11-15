@@ -49,13 +49,9 @@ class UsersSyncUtils {
 
 	/**
 	 * @param User $user
-	 * @return bool|null
+	 * @return bool|array
 	 */
 	public function disableUser( User $user ) {
-		if ( $user->isBlocked() ) {
-			return false;
-		}
-
 		$data = [
 			'PreviousTarget' => $user->getName(),
 			'Target' => $user->getName(),
