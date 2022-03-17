@@ -41,6 +41,9 @@
 		},
 		"UsersSyncMechanism": {
 			"value": "\\LDAPSyncAll\\UserSyncMechanism\\SyncAllMechanism::factory"
+		},
+		"UserPageContent": {
+			"value": "{{User}}"
 		}
 	},
 	"manifest_version": 2,
