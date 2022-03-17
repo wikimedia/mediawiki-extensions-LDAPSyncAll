@@ -2,7 +2,9 @@
 
 namespace LDAPSyncAll\UserSyncMechanism;
 
+use CommentStoreComment;
 use Config;
+use ContentHandler;
 use Exception;
 use IContextSource;
 use LDAPSyncAll\UsersSyncDAO;
@@ -19,10 +21,14 @@ use MediaWiki\Extension\LDAPUserInfo\Config as LDAPUserInfoConfig;
 use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
+use MWException;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Status;
 use User;
 use Wikimedia\Rdbms\LoadBalancer;
+use WikiPage;
 
 class SyncAllMechanism extends UsersSyncMechanism {
 
@@ -37,12 +43,20 @@ class SyncAllMechanism extends UsersSyncMechanism {
 	protected $LDAPUserInfoModifierRegistry = null;
 
 	/**
+	 * Content of user wiki page, which will be created in case of adding new user from Active Directory
+	 *
+	 * @var string
+	 */
+	protected $userPageContent = '';
+
+	/**
 	 * UsersSyncMechanism constructor.
 	 * @param string[] $domains
 	 * @param array $LDAPGroupsSyncMechanismRegistry
 	 * @param array $LDAPUserInfoModifierRegistry
 	 * @param array $excludedUsernames
 	 * @param array $excludedGroups
+	 * @param string $userPageContent
 	 * @param LoggerInterface $logger
 	 * @param LoadBalancer $loadBalancer
 	 * @param IContextSource $context
@@ -56,6 +70,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 		array $LDAPUserInfoModifierRegistry,
 		array $excludedUsernames,
 		array $excludedGroups,
+		string $userPageContent,
 		LoggerInterface $logger,
 		LoadBalancer $loadBalancer,
 		IContextSource $context,
@@ -68,6 +83,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 		$this->LDAPUserInfoModifierRegistry = $LDAPUserInfoModifierRegistry;
 		$this->excludedUsernames = $excludedUsernames;
 		$this->excludedGroups = $excludedGroups;
+		$this->userPageContent = $userPageContent;
 		$this->logger = $logger;
 		$this->loadBalancer = $loadBalancer;
 		$this->context = $context;
@@ -93,12 +109,20 @@ class SyncAllMechanism extends UsersSyncMechanism {
 			$domainUserListProviders[$domain] = $utils->makeUserListProvider( $domain );
 		}
 
+		$userPageContent = $config->get( 'LDAPSyncAllUserPageContent' );
+
+		// If there is "CreateUserPage" extension enabled - we should use page content from it
+		if ( !empty( $GLOBALS['wgCreateUserPage_PageContent'] ) ) {
+			$userPageContent = $GLOBALS['wgCreateUserPage_PageContent'];
+		}
+
 		return new self(
 			$domains,
 			$config->get( 'LDAPGroupsSyncMechanismRegistry' ),
 			$config->get( 'LDAPUserInfoModifierRegistry' ),
 			$config->get( 'LDAPSyncAllExcludedUsernames' ),
 			$config->get( 'LDAPSyncAllExcludedGroups' ),
+			$userPageContent,
 			LoggerFactory::getInstance( 'LDAPSyncAll' ),
 			MediaWikiServices::getInstance()->getDBLoadBalancer(),
 			$context,
@@ -294,6 +318,8 @@ class SyncAllMechanism extends UsersSyncMechanism {
 				]
 			);
 			$user->addToDatabase();
+			$this->createUserPage( $user );
+
 			$this->addedUsersCount++;
 		} catch ( Exception $exception ) {
 			$this->addedUsersFailsCount++;
@@ -304,6 +330,53 @@ class SyncAllMechanism extends UsersSyncMechanism {
 					'message' => $exception->getMessage()
 				]
 			);
+		}
+	}
+
+	/**
+	 * Creates user page for specified user.
+	 *
+	 * @param User $user User who user page is created for
+	 * @return void
+	 */
+	private function createUserPage( User $user ) {
+		$title = $user->getUserPage();
+
+		if ( $title->exists() ) {
+			$this->logger->debug( 'User page {title} already exists', [
+				'title' => $title->getFullText()
+			] );
+			return;
+		}
+
+		$contentHandler = ContentHandler::makeContent( $this->userPageContent, $title );
+
+		$wikipage = WikiPage::factory( $title );
+
+		$updater = $wikipage->newPageUpdater( User::newSystemUser( 'MediaWiki default' ) );
+		$updater->setContent( SlotRecord::MAIN, $contentHandler );
+
+		$commentStore = CommentStoreComment::newUnsavedComment( 'LDAPSyncAll' );
+
+		try {
+			$result = $updater->saveRevision( $commentStore, EDIT_NEW );
+		} catch ( MWException | RuntimeException $e ) {
+			$this->logger->error( 'User page creation exception: ' . $e->getMessage() );
+		}
+
+		if ( $result === null || !$updater->wasSuccessful() ) {
+			$status = $updater->getStatus();
+
+			if ( $status->getErrors() ) {
+				// If status is okay but there are errors - they are not fatal, just warnings
+				if ( $status->isOK() ) {
+					$this->logger->warning( 'User page creation warning: ' . $status->getMessage() );
+				} else {
+					$this->logger->error( 'User page creation error: ' . $status->getMessage() );
+				}
+			}
+		} else {
+			$this->logger->debug( 'User page is created for user: ' . $user->getName() );
 		}
 	}
 
