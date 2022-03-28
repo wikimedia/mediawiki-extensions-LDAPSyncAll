@@ -46,7 +46,7 @@ class LdapToolsBackend implements IUserListProvider {
 					'domain_name' => "dummy",
 					'username' => $config->get( ClientConfig::USER ),
 					'password' => $config->get( ClientConfig::PASSWORD ),
-					'base_dn' => $config->get( ClientConfig::BASE_DN ),
+					'base_dn' => $config->get( ClientConfig::USER_BASE_DN ),
 					'servers' => [ $config->get( ClientConfig::SERVER ) ],
 					'port' => $config->get( ClientConfig::PORT ),
 					'use_ssl' => $config->get( ClientConfig::ENC_TYPE ) === EncType::SSL,
