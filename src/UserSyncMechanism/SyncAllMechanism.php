@@ -351,7 +351,12 @@ class SyncAllMechanism extends UsersSyncMechanism {
 
 		$contentHandler = ContentHandler::makeContent( $this->userPageContent, $title );
 
-		$wikipage = WikiPage::factory( $title );
+		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
+			// MW 1.36+
+			$wikipage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		} else {
+			$wikipage = WikiPage::factory( $title );
+		}
 
 		$updater = $wikipage->newPageUpdater( User::newSystemUser( 'MediaWiki default' ) );
 		$updater->setContent( SlotRecord::MAIN, $contentHandler );
