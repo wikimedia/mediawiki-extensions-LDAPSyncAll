@@ -6,6 +6,7 @@ use LDAPSyncAll\IUserListProvider;
 use LDAPSyncAll\UsersSyncDAO;
 use LDAPSyncAll\UsersSyncUtils;
 use LDAPSyncAll\UserSyncMechanism\DisableUsersSyncMechanism;
+use MediaWiki\MediaWikiServices;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RequestContext;
@@ -63,8 +64,9 @@ class DisableUsersSyncMechanismTest extends TestCase {
 		];
 
 		$localUsers = [];
+		$userFactory = MediaWikiServices::getInstance()->getUserFactory();
 		foreach ( $localUserNames as $userName ) {
-			$localUsers[ $userName ] = User::newFromName( $userName );
+			$localUsers[ $userName ] = $userFactory->newFromName( $userName );
 		}
 
 		$daoMock = $this->createMock( UsersSyncDAO::class );

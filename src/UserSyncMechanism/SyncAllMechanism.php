@@ -205,11 +205,12 @@ class SyncAllMechanism extends UsersSyncMechanism {
 			$this->disableLocalUser( $userToDisable );
 		}
 
+		$userFactory = MediaWikiServices::getInstance()->getUserFactory();
 		foreach ( $usersToAddOrEnable as $username ) {
 			if ( isset( $localUsers[$username] ) ) {
 				$userToAddOrEnable = $localUsers[$username];
 			} else {
-				$userToAddOrEnable = User::newFromName( $username );
+				$userToAddOrEnable = $userFactory->newFromName( $username );
 			}
 			if ( $userToAddOrEnable->getId() !== 0 ) {
 				$this->maybeEnableUser( $userToAddOrEnable );

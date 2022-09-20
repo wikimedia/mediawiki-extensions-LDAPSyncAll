@@ -3,9 +3,9 @@ namespace LDAPSyncAll\RunJobsTriggerHandler;
 
 use BlueSpice\RunJobsTriggerHandler;
 use GlobalVarConfig;
+use MediaWiki\MediaWikiServices;
 use RequestContext;
 use Status;
-use User;
 
 class SyncLDAPUsers extends RunJobsTriggerHandler {
 
@@ -14,7 +14,8 @@ class SyncLDAPUsers extends RunJobsTriggerHandler {
 		$config = new GlobalVarConfig( '' );
 		$context = RequestContext::getMain();
 		$context->setUser(
-			User::newFromName( $config->get( 'LDAPSyncAllBlockExecutorUsername' ) )
+			MediaWikiServices::getInstance()->getUserFactory()
+				->newFromName( $config->get( 'LDAPSyncAllBlockExecutorUsername' ) )
 		);
 
 		$syncMechanismCallback = $config->get( 'LDAPSyncAllUsersSyncMechanism' );
