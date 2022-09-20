@@ -10,7 +10,7 @@ use LdapTools\LdapManager;
 use LdapTools\Object\LdapObject;
 use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\EncType;
-use User;
+use MediaWiki\MediaWikiServices;
 
 class LdapToolsBackend implements IUserListProvider {
 
@@ -104,7 +104,7 @@ class LdapToolsBackend implements IUserListProvider {
 			}
 		}
 
-		$user = User::newFromName( $normalUsername );
+		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromName( $normalUsername );
 		return $user->getName();
 	}
 }

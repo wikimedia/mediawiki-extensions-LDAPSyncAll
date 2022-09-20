@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 $maintPath = ( getenv( 'MW_INSTALL_PATH' ) !== false
 		? getenv( 'MW_INSTALL_PATH' )
 		: __DIR__ . '/../../..' ) . '/maintenance/Maintenance.php';
@@ -21,7 +23,8 @@ class SyncLDAPUsers extends Maintenance {
 		$config = new GlobalVarConfig( '' );
 		$context = RequestContext::getMain();
 		$context->setUser(
-			User::newFromName( $config->get( 'LDAPSyncAllBlockExecutorUsername' ) )
+			MediaWikiServices::getInstance()->getUserFactory()
+				->newFromName( $config->get( 'LDAPSyncAllBlockExecutorUsername' ) )
 		);
 
 		$syncMechanismCallback = $config->get( 'LDAPSyncAllUsersSyncMechanism' );
