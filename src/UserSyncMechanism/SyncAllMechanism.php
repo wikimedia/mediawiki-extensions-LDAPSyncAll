@@ -154,8 +154,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 				$results
 			);
 			$this->status = Status::newGood( $results );
-		}
-		catch ( Exception $ex ) {
+		} catch ( Exception $ex ) {
 			$this->status = Status::newFatal( $ex->getMessage() );
 			$this->logger->error(
 				'Error: `{message}`',
