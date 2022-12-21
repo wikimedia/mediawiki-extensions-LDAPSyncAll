@@ -15,7 +15,6 @@ use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use Psr\Log\LoggerInterface;
 use Status;
-use User;
 use Wikimedia\Rdbms\LoadBalancer;
 
 class DisableUsersSyncMechanism extends UsersSyncMechanism {
@@ -115,11 +114,12 @@ class DisableUsersSyncMechanism extends UsersSyncMechanism {
 
 	private function doSync() {
 		$ldapUsers = [];
+		$userFactory = MediaWikiServices::getInstance()->getUserFactory();
 		foreach ( $this->domains as $domain ) {
 			$usernames = $this->domainUserListProviders[$domain]->getWikiUsernames();
 			sort( $usernames );
 			foreach ( $usernames as $username ) {
-				$ldapUsers[$username] = User::newFromName( $username );
+				$ldapUsers[$username] = $userFactory->newFromName( $username );
 			}
 		}
 
