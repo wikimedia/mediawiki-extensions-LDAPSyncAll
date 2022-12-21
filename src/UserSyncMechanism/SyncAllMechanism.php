@@ -28,7 +28,6 @@ use RuntimeException;
 use Status;
 use User;
 use Wikimedia\Rdbms\LoadBalancer;
-use WikiPage;
 
 class SyncAllMechanism extends UsersSyncMechanism {
 
@@ -350,13 +349,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 		}
 
 		$contentHandler = ContentHandler::makeContent( $this->userPageContent, $title );
-
-		if ( method_exists( MediaWikiServices::class, 'getWikiPageFactory' ) ) {
-			// MW 1.36+
-			$wikipage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
-		} else {
-			$wikipage = WikiPage::factory( $title );
-		}
+		$wikipage = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
 
 		$updater = $wikipage->newPageUpdater( User::newSystemUser( 'MediaWiki default' ) );
 		$updater->setContent( SlotRecord::MAIN, $contentHandler );
