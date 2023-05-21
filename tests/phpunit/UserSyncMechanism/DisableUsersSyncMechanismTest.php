@@ -95,7 +95,7 @@ class DisableUsersSyncMechanismTest extends TestCase {
 		$usersSyncMechanism->sync();
 	}
 
-	public function provideSyncData(): array {
+	public static function provideSyncData(): array {
 		return [
 			'no-users-disable' => [
 				[ 'TestUser1', 'TestUser2' ],
