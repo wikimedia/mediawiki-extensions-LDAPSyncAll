@@ -74,12 +74,11 @@ class DisableUsersSyncMechanismTest extends TestCase {
 
 		$utilMock = $this->createMock( UsersSyncUtils::class );
 
-		$disabledUsersAmount = count( $disabledUsers );
-		$utilMock->expects( $this->exactly( $disabledUsersAmount ) )->method( 'disableUser' );
-
-		for ( $i = 0; $i < $disabledUsersAmount; $i++ ) {
-			$utilMock->expects( $this->at( $i ) )->method( 'disableUser' )->with( $disabledUsers[$i] );
-		}
+		$utilMock->expects( $this->exactly( count( $disabledUsers ) ) )
+			->method( 'disableUser' )
+			->withConsecutive( ...array_map( static function ( $disableUser ) {
+				return [ $disableUser ];
+			}, $disabledUsers ) );
 
 		$usersSyncMechanism = new DisableUsersSyncMechanism(
 			$this->domains,
@@ -96,7 +95,7 @@ class DisableUsersSyncMechanismTest extends TestCase {
 		$usersSyncMechanism->sync();
 	}
 
-	public function provideSyncData(): array {
+	public static function provideSyncData(): array {
 		return [
 			'no-users-disable' => [
 				[ 'TestUser1', 'TestUser2' ],

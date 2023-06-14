@@ -125,7 +125,7 @@ abstract class UsersSyncMechanism {
 	 * @return void
 	 */
 	protected function disableLocalUser( User $user ) {
-		if ( $user->isBlocked() ) {
+		if ( $user->getBlock() ) {
 			return;
 		}
 		if ( in_array( $user->getName(), $this->excludedUsernames ) ) {

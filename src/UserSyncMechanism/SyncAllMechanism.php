@@ -153,8 +153,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 				$results
 			);
 			$this->status = Status::newGood( $results );
-		}
-		catch ( Exception $ex ) {
+		} catch ( Exception $ex ) {
 			$this->status = Status::newFatal( $ex->getMessage() );
 			$this->logger->error(
 				'Error: `{message}`',
@@ -231,7 +230,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 			if ( $user === null ) {
 				continue;
 			}
-			if ( $user->isBlocked() ) {
+			if ( $user->getBlock() ) {
 				continue;
 			}
 			if ( $user->getId() !== 0 ) {
@@ -251,7 +250,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 		$this->logger->debug( 'Syncing all user info' );
 		$usersToSync = $this->dao->getLocalDBUsers();
 		foreach ( $usersToSync as $user ) {
-			if ( $user->isBlocked() ) {
+			if ( $user->getBlock() ) {
 				continue;
 			}
 			$this->logger->debug(
@@ -271,7 +270,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 		$this->logger->debug( 'Syncing all user groups' );
 		$usersToSync = $this->dao->getLocalDBUsers();
 		foreach ( $usersToSync as $user ) {
-			if ( $user->isBlocked() ) {
+			if ( $user->getBlock() ) {
 				continue;
 			}
 			$this->logger->debug(
@@ -384,8 +383,9 @@ class SyncAllMechanism extends UsersSyncMechanism {
 	 */
 	private function maybeEnableUser( $user ) {
 		try {
-			if ( $user->isBlocked() ) {
-				$result = $user->getBlock()->delete();
+			$block = $user->getBlock();
+			if ( $block ) {
+				$result = $block->delete();
 				$this->logger->debug( 'Enabling `{username}`: {result}',
 					[
 						'username' => $user->getName(),
