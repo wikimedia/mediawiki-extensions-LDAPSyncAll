@@ -1,6 +1,6 @@
 {
 	"name": "LDAPSyncAll",
-	"version": "1.0.0",
+	"version": "3.0.0-alpha",
 	"license-name": "GPL-3.0-only",
 	"author": [
 		"[https://www.hallowelt.com Hallo Welt! GmbH]"
@@ -8,11 +8,11 @@
 	"url": "https://www.hallowelt.com",
 	"descriptionmsg": "ldapsyncall-desc",
 	"requires": {
-		"MediaWiki": ">= 1.31.0",
+		"MediaWiki": ">= 1.39.0",
 		"extensions": {
-			"LDAPProvider": "~1.0",
-			"LDAPUserInfo": "~1.0",
-			"LDAPGroups": "~1.0"
+			"LDAPProvider": "~2.0",
+			"LDAPUserInfo": "~2.0",
+			"LDAPGroups": "~2.0"
 		}
 	},
 	"attributes": {
