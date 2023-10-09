@@ -6,6 +6,21 @@
 	},
 	"license": "GPL-2.0+",
 	"homepage": "https://www.mediawiki.org/wiki/Extension:LDAPSyncAll",
+	"repositories": [
+		{
+			"type": "package",
+			"package": [{
+				"name": "ldaptools/ldaptools",
+				"type": "library",
+				"version": "0.25+PHP8compat",
+				"source": {
+					"url": "https://github.com/passbolt/ldaptools.git",
+					"type": "git",
+					"reference": "9e5ce1acb2d0dfa7f24c4d5628f778412f3ba617"
+				}
+			}]
+		}
+	],
 	"require": {
 		"composer/installers": "~1.0|~2",
 		"ldaptools/ldaptools": "~0.25"
