@@ -28,6 +28,14 @@
 	"AutoloadNamespaces": {
 		"LDAPSyncAll\\": "src/"
 	},
+	"Hooks": {
+		"ChangeTagsAllowedAdd": "add-ldap-tag"
+	},
+	"HookHandlers": {
+		"add-ldap-tag": {
+			"class": "\\LDAPSyncAll\\Hook\\ChangeTagsAllowedAdd\\AddLdapTag"
+		}
+	},
 	"config_prefix": "LDAPSyncAll",
 	"config": {
 		"ExcludedUsernames": {
