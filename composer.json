@@ -9,7 +9,7 @@
 	"repositories": [
 		{
 			"type": "package",
-			"package": [{
+			"package": [ {
 				"name": "ldaptools/ldaptools",
 				"type": "library",
 				"version": "0.25+PHP8compat",
@@ -18,7 +18,7 @@
 					"type": "git",
 					"reference": "9e5ce1acb2d0dfa7f24c4d5628f778412f3ba617"
 				}
-			}]
+			} ]
 		}
 	],
 	"require": {
