@@ -144,7 +144,7 @@ abstract class UsersSyncMechanism {
 		}
 
 		$result = $this->utils->disableUser( $user );
-		if ( $result === true ) {
+		if ( $result->isGood() ) {
 			$this->disabledUsersCount++;
 		} else {
 			$this->disabledUsersFailsCount++;
@@ -152,7 +152,7 @@ abstract class UsersSyncMechanism {
 				'Error while disabling user "{username}": {message}',
 				[
 					'username' => $user->getName(),
-					'message' => $result
+					'message' => $result->getWikiText()
 				]
 			);
 		}
@@ -160,7 +160,7 @@ abstract class UsersSyncMechanism {
 			'Disabling `{username}`: {result}',
 			[
 				'username' => $user->getName(),
-				'result' => $result ? 'OK' : 'FAIL'
+				'result' => $result->isGood() ? 'OK' : 'FAIL'
 			]
 		);
 	}
