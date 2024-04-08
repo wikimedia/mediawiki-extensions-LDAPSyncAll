@@ -10,6 +10,7 @@ use MediaWiki\MediaWikiServices;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RequestContext;
+use Status;
 use User;
 use Wikimedia\Rdbms\LoadBalancer;
 
@@ -72,13 +73,17 @@ class DisableUsersSyncMechanismTest extends TestCase {
 		$daoMock = $this->createMock( UsersSyncDAO::class );
 		$daoMock->method( 'getLocalDBUsers' )->willReturn( $localUsers );
 
+		$statusMock = $this->createMock( Status::class );
+		$statusMock->method( 'isGood' )->willReturn( true );
+
 		$utilMock = $this->createMock( UsersSyncUtils::class );
 
 		$utilMock->expects( $this->exactly( count( $disabledUsers ) ) )
 			->method( 'disableUser' )
 			->withConsecutive( ...array_map( static function ( $disableUser ) {
 				return [ $disableUser ];
-			}, $disabledUsers ) );
+			}, $disabledUsers ) )
+			->willReturn( $statusMock );
 
 		$usersSyncMechanism = new DisableUsersSyncMechanism(
 			$this->domains,
