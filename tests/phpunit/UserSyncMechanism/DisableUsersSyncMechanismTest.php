@@ -7,7 +7,7 @@ use LDAPSyncAll\UsersSyncDAO;
 use LDAPSyncAll\UsersSyncUtils;
 use LDAPSyncAll\UserSyncMechanism\DisableUsersSyncMechanism;
 use MediaWiki\MediaWikiServices;
-use PHPUnit\Framework\TestCase;
+use MediaWikiIntegrationTestCase;
 use Psr\Log\LoggerInterface;
 use RequestContext;
 use User;
@@ -15,8 +15,9 @@ use Wikimedia\Rdbms\LoadBalancer;
 
 /**
  * @covers \LDAPSyncAll\UserSyncMechanism\DisableUsersSyncMechanism
+ * @group Database
  */
-class DisableUsersSyncMechanismTest extends TestCase {
+class DisableUsersSyncMechanismTest extends MediaWikiIntegrationTestCase {
 
 	/**
 	 * @var LoggerInterface
