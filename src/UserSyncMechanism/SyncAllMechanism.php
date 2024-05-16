@@ -184,10 +184,12 @@ class SyncAllMechanism extends UsersSyncMechanism {
 	private function syncLocalUserDB() {
 		$usersToAddOrEnable = [];
 		foreach ( $this->domains as $domain ) {
+			$this->logger->debug( "Loading users for domain '$domain'" );
 			$userListProvider = $this->utils->makeUserListProvider( $domain );
 			$usernames = $userListProvider->getWikiUsernames();
 			sort( $usernames );
 			foreach ( $usernames as $username ) {
+				$this->logger->debug( "Processing user '$domain\\$username'" );
 				$this->usernameDomainMap[$username] = $domain;
 				if ( $this->shouldAddOrEnable( $username, $domain ) ) {
 					$usersToAddOrEnable[] = $username;
