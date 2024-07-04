@@ -115,9 +115,11 @@ class DisableUsersSyncMechanism extends UsersSyncMechanism {
 		$ldapUsers = [];
 		$userFactory = MediaWikiServices::getInstance()->getUserFactory();
 		foreach ( $this->domains as $domain ) {
+			$this->logger->debug( "Loading users for domain '$domain'" );
 			$usernames = $this->domainUserListProviders[$domain]->getWikiUsernames();
 			sort( $usernames );
 			foreach ( $usernames as $username ) {
+				$this->logger->debug( "Processing user '$domain\\$username'" );
 				$ldapUsers[$username] = $userFactory->newFromName( $username );
 			}
 		}
