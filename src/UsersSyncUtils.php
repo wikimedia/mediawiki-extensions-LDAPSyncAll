@@ -6,8 +6,9 @@ use IContextSource;
 use LDAPSyncAll\UserListProvider\LdapToolsBackend;
 use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserGroupManager;
-use SpecialBlock;
+use Status;
 use User;
 
 class UsersSyncUtils {
@@ -49,7 +50,7 @@ class UsersSyncUtils {
 
 	/**
 	 * @param User $user
-	 * @return bool|array
+	 * @return Status
 	 */
 	public function disableUser( User $user ) {
 		$data = [
@@ -71,7 +72,14 @@ class UsersSyncUtils {
 			'Tags' => [ 'ldap' ],
 		];
 
-		return SpecialBlock::processForm( $data, $this->context );
+		$blockUser = MediaWikiServices::getInstance()->getBlockUserFactory()
+			->newBlockUser(
+				$user->getName(),
+				$this->context->getAuthority(),
+				$data['Expiry']
+			);
+
+		return $blockUser->placeBlock( $data['Reblock'] );
 	}
 
 	/**
