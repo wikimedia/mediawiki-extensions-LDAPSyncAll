@@ -53,33 +53,25 @@ class UsersSyncUtils {
 	 * @return Status
 	 */
 	public function disableUser( User $user ) {
-		$data = [
-			'PreviousTarget' => $user->getName(),
-			'Target' => $user->getName(),
-			'Reason' => [
-				wfMessage( 'user-is-not-in-ad-block-reason' )->plain()
-			],
-			'Expiry' => 'infinity',
-			'HardBlock' => true,
-			'CreateAccount' => false,
-			'AutoBlock' => false,
-			'DisableEmail' => false,
-			'HideUser' => false,
-			'DisableUTEdit' => true,
-			'Reblock' => false,
-			'Watch' => false,
-			'Confirm' => '',
-			'Tags' => [ 'ldap' ],
-		];
-
 		$blockUser = MediaWikiServices::getInstance()->getBlockUserFactory()
 			->newBlockUser(
 				$user->getName(),
 				$this->context->getAuthority(),
-				$data['Expiry']
+				'infinity',
+				wfMessage( 'user-is-not-in-ad-block-reason' )->plain(),
+				[
+					'isHardBlock' => true,
+					'isCreateAccountBlocked' => false,
+					'isAutoblocking' => false,
+					'isEmailBlocked' => false,
+					'isHideUser' => false,
+					'isUserTalkEditBlocked' => true
+				],
+				[],
+				[ 'ldap' ]
 			);
 
-		return $blockUser->placeBlock( $data['Reblock'] );
+		return $blockUser->placeBlock();
 	}
 
 	/**
