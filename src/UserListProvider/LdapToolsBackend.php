@@ -50,7 +50,8 @@ class LdapToolsBackend implements IUserListProvider {
 					'servers' => [ $config->get( ClientConfig::SERVER ) ],
 					'port' => $config->get( ClientConfig::PORT ),
 					'use_ssl' => $config->get( ClientConfig::ENC_TYPE ) === EncType::SSL,
-					'use_tls' => $config->get( ClientConfig::ENC_TYPE ) === EncType::TLS
+					'use_tls' => $config->get( ClientConfig::ENC_TYPE ) === EncType::TLS,
+					'ldap_type' => $config->get( ClientConfig::LDAP_TYPE ),
 				]
 			]
 		] );
