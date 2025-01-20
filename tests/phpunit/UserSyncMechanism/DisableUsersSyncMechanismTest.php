@@ -7,11 +7,11 @@ use LDAPSyncAll\UsersSyncDAO;
 use LDAPSyncAll\UsersSyncUtils;
 use LDAPSyncAll\UserSyncMechanism\DisableUsersSyncMechanism;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\User;
 use MediaWikiIntegrationTestCase;
 use Psr\Log\LoggerInterface;
 use RequestContext;
 use Status;
-use User;
 use Wikimedia\Rdbms\LoadBalancer;
 
 /**

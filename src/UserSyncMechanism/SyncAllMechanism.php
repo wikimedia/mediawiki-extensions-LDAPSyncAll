@@ -22,11 +22,11 @@ use MediaWiki\Extension\LDAPUserInfo\UserInfoSyncProcess;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\User\User;
 use MWException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Status;
-use User;
 use Wikimedia\Rdbms\LoadBalancer;
 
 class SyncAllMechanism extends UsersSyncMechanism {

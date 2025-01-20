@@ -7,9 +7,9 @@ use LDAPSyncAll\UserListProvider\LdapToolsBackend;
 use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\User;
 use MediaWiki\User\UserGroupManager;
 use Status;
-use User;
 
 class UsersSyncUtils {
 
