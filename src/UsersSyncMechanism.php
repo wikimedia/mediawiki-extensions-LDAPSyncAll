@@ -7,9 +7,9 @@ use IContextSource;
 use MediaWiki\Extension\LDAPProvider\Client;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
+use MediaWiki\User\User;
 use Psr\Log\LoggerInterface;
 use Status;
-use User;
 use Wikimedia\Rdbms\LoadBalancer;
 
 abstract class UsersSyncMechanism {
