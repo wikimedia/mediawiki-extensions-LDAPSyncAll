@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
 
 $maintPath = ( getenv( 'MW_INSTALL_PATH' ) !== false
