@@ -3,8 +3,8 @@ namespace LDAPSyncAll\RunJobsTriggerHandler;
 
 use BlueSpice\RunJobsTriggerHandler;
 use GlobalVarConfig;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
-use RequestContext;
 use Status;
 
 class SyncLDAPUsers extends RunJobsTriggerHandler {
