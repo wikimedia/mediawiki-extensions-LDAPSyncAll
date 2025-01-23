@@ -2,13 +2,13 @@
 
 namespace LDAPSyncAll\UserSyncMechanism;
 
-use Config;
 use Exception;
 use IContextSource;
 use LDAPSyncAll\IUserListProvider;
 use LDAPSyncAll\UsersSyncDAO;
 use LDAPSyncAll\UsersSyncMechanism;
 use LDAPSyncAll\UsersSyncUtils;
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
 use MediaWiki\Logger\LoggerFactory;

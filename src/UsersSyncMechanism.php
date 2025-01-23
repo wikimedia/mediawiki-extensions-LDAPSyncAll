@@ -2,8 +2,8 @@
 
 namespace LDAPSyncAll;
 
-use Config;
 use IContextSource;
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\LDAPProvider\Client;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
