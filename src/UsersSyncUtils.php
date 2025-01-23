@@ -2,8 +2,8 @@
 
 namespace LDAPSyncAll;
 
-use IContextSource;
 use LDAPSyncAll\UserListProvider\LdapToolsBackend;
+use MediaWiki\Context\IContextSource;
 use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\MediaWikiServices;
