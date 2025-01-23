@@ -2,12 +2,12 @@
 
 namespace LDAPSyncAll\UserListProvider;
 
-use Config;
 use LDAPSyncAll\IUserListProvider;
 use LDAPSyncAll\LdapTools\Log\MediaWikiLog;
 use LdapTools\Configuration;
 use LdapTools\LdapManager;
 use LdapTools\Object\LdapObject;
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\EncType;
 use MediaWiki\MediaWikiServices;

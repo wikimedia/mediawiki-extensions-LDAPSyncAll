@@ -3,13 +3,13 @@
 namespace LDAPSyncAll\UserSyncMechanism;
 
 use CommentStoreComment;
-use Config;
 use ContentHandler;
 use Exception;
 use IContextSource;
 use LDAPSyncAll\UsersSyncDAO;
 use LDAPSyncAll\UsersSyncMechanism;
 use LDAPSyncAll\UsersSyncUtils;
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\LDAPAuthorization\Config as LDAPAuthorizationConfig;
 use MediaWiki\Extension\LDAPAuthorization\RequirementsChecker;
 use MediaWiki\Extension\LDAPGroups\Config as LDAPGroupsConfig;
