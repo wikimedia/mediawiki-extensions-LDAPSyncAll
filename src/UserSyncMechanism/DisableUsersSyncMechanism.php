@@ -13,8 +13,8 @@ use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\Extension\LDAPProvider\UserDomainStore;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Status\Status;
 use Psr\Log\LoggerInterface;
-use Status;
 use Wikimedia\Rdbms\LoadBalancer;
 
 class DisableUsersSyncMechanism extends UsersSyncMechanism {

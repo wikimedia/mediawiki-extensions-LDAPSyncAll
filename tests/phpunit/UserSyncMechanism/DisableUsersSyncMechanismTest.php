@@ -8,10 +8,10 @@ use LDAPSyncAll\UsersSyncUtils;
 use LDAPSyncAll\UserSyncMechanism\DisableUsersSyncMechanism;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Status\Status;
 use MediaWiki\User\User;
 use MediaWikiIntegrationTestCase;
 use Psr\Log\LoggerInterface;
-use Status;
 use Wikimedia\Rdbms\LoadBalancer;
 
 /**
