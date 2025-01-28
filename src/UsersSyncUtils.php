@@ -7,9 +7,9 @@ use MediaWiki\Context\IContextSource;
 use MediaWiki\Extension\LDAPProvider\ClientConfig;
 use MediaWiki\Extension\LDAPProvider\DomainConfigFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Status\Status;
 use MediaWiki\User\User;
 use MediaWiki\User\UserGroupManager;
-use Status;
 
 class UsersSyncUtils {
 

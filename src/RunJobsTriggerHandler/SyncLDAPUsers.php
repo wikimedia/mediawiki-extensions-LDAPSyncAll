@@ -5,7 +5,7 @@ use BlueSpice\RunJobsTriggerHandler;
 use GlobalVarConfig;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
-use Status;
+use MediaWiki\Status\Status;
 
 class SyncLDAPUsers extends RunJobsTriggerHandler {
 
