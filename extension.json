@@ -8,7 +8,7 @@
 	"url": "https://www.mediawiki.org/wiki/Extension:LDAPSyncAll",
 	"descriptionmsg": "ldapsyncall-desc",
 	"requires": {
-		"MediaWiki": ">= 1.39.0",
+		"MediaWiki": ">= 1.43.0",
 		"extensions": {
 			"LDAPProvider": "3.*",
 			"LDAPUserInfo": "3.*",
