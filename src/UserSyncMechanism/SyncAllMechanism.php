@@ -2,12 +2,12 @@
 
 namespace LDAPSyncAll\UserSyncMechanism;
 
-use CommentStoreComment;
 use ContentHandler;
 use Exception;
 use LDAPSyncAll\UsersSyncDAO;
 use LDAPSyncAll\UsersSyncMechanism;
 use LDAPSyncAll\UsersSyncUtils;
+use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Extension\LDAPAuthorization\Config as LDAPAuthorizationConfig;
