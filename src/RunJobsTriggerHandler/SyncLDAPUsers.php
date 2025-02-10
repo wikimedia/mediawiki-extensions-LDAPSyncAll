@@ -2,7 +2,7 @@
 namespace LDAPSyncAll\RunJobsTriggerHandler;
 
 use BlueSpice\RunJobsTriggerHandler;
-use GlobalVarConfig;
+use MediaWiki\Config\GlobalVarConfig;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Status\Status;
