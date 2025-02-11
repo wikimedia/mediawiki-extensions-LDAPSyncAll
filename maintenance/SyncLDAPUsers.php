@@ -2,6 +2,7 @@
 
 use MediaWiki\Config\GlobalVarConfig;
 use MediaWiki\Context\RequestContext;
+use MediaWiki\Maintenance\Maintenance;
 use MediaWiki\MediaWikiServices;
 
 $maintPath = ( getenv( 'MW_INSTALL_PATH' ) !== false
