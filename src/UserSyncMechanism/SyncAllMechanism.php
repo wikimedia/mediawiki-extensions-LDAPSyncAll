@@ -387,7 +387,8 @@ class SyncAllMechanism extends UsersSyncMechanism {
 		try {
 			$block = $user->getBlock();
 			if ( $block ) {
-				$result = $block->delete();
+				$result = MediaWikiServices::getInstance()->getDatabaseBlockStore()
+					->deleteBlock( $block );
 				$this->logger->debug( 'Enabling `{username}`: {result}',
 					[
 						'username' => $user->getName(),
