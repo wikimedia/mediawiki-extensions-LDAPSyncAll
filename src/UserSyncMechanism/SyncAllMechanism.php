@@ -24,9 +24,8 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Status\Status;
 use MediaWiki\User\User;
-use MWException;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
+use Throwable;
 use Wikimedia\Rdbms\LoadBalancer;
 
 class SyncAllMechanism extends UsersSyncMechanism {
@@ -359,7 +358,7 @@ class SyncAllMechanism extends UsersSyncMechanism {
 
 		try {
 			$result = $updater->saveRevision( $commentStore, EDIT_NEW );
-		} catch ( MWException | RuntimeException $e ) {
+		} catch ( Throwable $e ) {
 			$this->logger->error( 'User page creation exception: ' . $e->getMessage() );
 		}
 
