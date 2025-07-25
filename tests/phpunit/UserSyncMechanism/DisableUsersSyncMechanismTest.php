@@ -7,7 +7,6 @@ use LDAPSyncAll\UsersSyncDAO;
 use LDAPSyncAll\UsersSyncUtils;
 use LDAPSyncAll\UserSyncMechanism\DisableUsersSyncMechanism;
 use MediaWiki\Context\RequestContext;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Status\Status;
 use MediaWiki\User\User;
 use MediaWikiIntegrationTestCase;
@@ -66,7 +65,7 @@ class DisableUsersSyncMechanismTest extends MediaWikiIntegrationTestCase {
 		];
 
 		$localUsers = [];
-		$userFactory = MediaWikiServices::getInstance()->getUserFactory();
+		$userFactory = $this->getServiceContainer()->getUserFactory();
 		foreach ( $localUserNames as $userName ) {
 			$localUsers[ $userName ] = $userFactory->newFromName( $userName );
 		}
