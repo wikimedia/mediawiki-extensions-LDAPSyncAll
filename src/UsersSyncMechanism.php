@@ -15,7 +15,6 @@ use Wikimedia\Rdbms\LoadBalancer;
 abstract class UsersSyncMechanism {
 
 	/**
-	 *
 	 * @var LoggerInterface
 	 */
 	protected $logger = null;
@@ -26,7 +25,6 @@ abstract class UsersSyncMechanism {
 	protected $loadBalancer = null;
 
 	/**
-	 *
 	 * @var Status
 	 */
 	protected $status = null;
@@ -67,7 +65,6 @@ abstract class UsersSyncMechanism {
 	protected $userDomainStore = null;
 
 	/**
-	 *
 	 * @var Client[]
 	 */
 	protected $clients = null;
@@ -120,7 +117,6 @@ abstract class UsersSyncMechanism {
 	abstract public static function factory( Config $config, IContextSource $context ): UsersSyncMechanism;
 
 	/**
-	 *
 	 * @param User $user
 	 * @return void
 	 */

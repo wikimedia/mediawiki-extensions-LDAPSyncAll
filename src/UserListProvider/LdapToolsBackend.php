@@ -15,19 +15,16 @@ use MediaWiki\MediaWikiServices;
 class LdapToolsBackend implements IUserListProvider {
 
 	/**
-	 *
 	 * @var LdapManager
 	 */
 	private $ldapManager = null;
 
 	/**
-	 *
 	 * @var string
 	 */
 	private $usernameAttribute = '';
 
 	/**
-	 *
 	 * @param Config $connectionSettings
 	 * @return IUserListProvider
 	 */
@@ -36,7 +33,6 @@ class LdapToolsBackend implements IUserListProvider {
 	}
 
 	/**
-	 *
 	 * @param Config $config
 	 */
 	public function __construct( $config ) {
@@ -61,7 +57,6 @@ class LdapToolsBackend implements IUserListProvider {
 	}
 
 	/**
-	 *
 	 * @return string[]
 	 */
 	public function getWikiUsernames() {
@@ -83,7 +78,6 @@ class LdapToolsBackend implements IUserListProvider {
 	}
 
 	/**
-	 *
 	 * @param string $ldapUsername
 	 * @return string
 	 */

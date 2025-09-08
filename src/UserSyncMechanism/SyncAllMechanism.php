@@ -289,7 +289,6 @@ class SyncAllMechanism extends UsersSyncMechanism {
 	}
 
 	/**
-	 *
 	 * @param string $username
 	 * @param string $domain
 	 * @return bool
