@@ -15,19 +15,15 @@
 			"LDAPGroups": "4.*"
 		}
 	},
-	"attributes": {
-		"BlueSpiceFoundation": {
-			"RunJobsTriggerHandlerRegistry": {
-				"ldap-users-sync-all": "\\LDAPSyncAll\\RunJobsTriggerHandler\\SyncLDAPUsers::factory"
-			}
-		}
-	},
 	"MessagesDirs": {
 		"LDAPSyncAll": "i18n"
 	},
 	"AutoloadNamespaces": {
 		"LDAPSyncAll\\": "src/"
 	},
+	"ExtensionFunctions": [
+		"\\LDAPSyncAll\\SyncLDAPUsersCron::register"
+	],
 	"Hooks": {
 		"ChangeTagsAllowedAdd": "add-ldap-tag"
 	},
