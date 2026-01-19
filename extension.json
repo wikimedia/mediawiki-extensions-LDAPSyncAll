@@ -10,9 +10,9 @@
 	"requires": {
 		"MediaWiki": ">= 1.43.0",
 		"extensions": {
-			"LDAPProvider": "3.*",
-			"LDAPUserInfo": "3.*",
-			"LDAPGroups": "3.*"
+			"LDAPProvider": "4.*",
+			"LDAPUserInfo": "4.*",
+			"LDAPGroups": "4.*"
 		}
 	},
 	"attributes": {
