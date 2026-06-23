@@ -33,7 +33,7 @@
 	"require": {
 		"composer/installers": "~1.0|~2",
 		"ldaptools/ldaptools": "~0.25",
-		"mwstake/mediawiki-component-wikicron": "~3|~4"
+		"mwstake/mediawiki-component-wikicron": "~3|~4|~5"
 	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "51.0.0",
