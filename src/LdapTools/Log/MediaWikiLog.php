@@ -11,7 +11,6 @@ use Psr\Log\LoggerInterface;
 class MediaWikiLog implements LogLdapLoggerInterface {
 
 	/**
-	 *
 	 * @var LoggerInterface
 	 */
 	private $logger = null;

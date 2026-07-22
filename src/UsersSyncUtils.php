@@ -19,7 +19,6 @@ class UsersSyncUtils {
 	private $context;
 
 	/**
-	 *
 	 * @var UserGroupManager
 	 */
 	private $groupManager;
@@ -75,13 +74,11 @@ class UsersSyncUtils {
 	}
 
 	/**
-	 *
 	 * @var array
 	 */
 	private $userGroups = [];
 
 	/**
-	 *
 	 * @param User $user
 	 * @param string $groupName
 	 * @return bool
