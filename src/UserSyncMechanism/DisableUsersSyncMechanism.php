@@ -55,6 +55,9 @@ class DisableUsersSyncMechanism extends UsersSyncMechanism {
 		$this->domainUserListProviders = $domainUserListProviders;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function sync() {
 		try {
 			$this->doSync();
